@@ -1,12 +1,110 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Landscape</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
+  <style>
+    html, body { margin:0; height:100%; background:#000; color:#fff; }
+    #gate { height:100%; display:grid; place-items:center; background:#000; }
+    #go { padding:.9rem 1.3rem; font-size:1rem; border:0; border-radius:.6rem; cursor:pointer; background:#fff; color:#000; }
+
+    #stage { display:none; position:fixed; inset:0; background:#000; touch-action:manipulation; }
+    #img {
+      position:fixed; inset:0;
+      width:100vw; height:100vh;
+      object-fit:contain; background:#000;
+      user-select:none; -webkit-user-drag:none; -webkit-touch-callout:none;
+      cursor:none;
+    }
+    @supports (height: 100dvh) { #img { height:100dvh; } }
+
+    :fullscreen #img, :-webkit-full-screen #img {
+      width:100vw !important;
+      height:100vh !important;
+    }
+    :fullscreen #stage, :-webkit-full-screen #stage {
+      position:fixed; inset:0; background:#000;
+    }
+  </style>
 </head>
-<body style="text-align:center; background-color:black; color:white;">
-  <h1>Landscape foto's</h1>
-  <p>Hier komen de landschapsfoto's binnenkort te staan.</p>
-  <a href="./">← Terug naar start</a>
+<body>
+  <div id="gate">
+    <button id="go" type="button">Go fullscreen</button>
+  </div>
+
+  <div id="stage" aria-hidden="true">
+    <img id="img" alt="Landscape" />
+  </div>
+
+  <script>
+    // --- jouw foto's ---
+    const images = [
+      "images/L1.jpg",
+      "images/L2.jpg",
+      "images/L3.jpg",
+      "images/L4.jpg",
+      "images/L5.jpg",
+      "images/L6.jpg",
+      "images/L7.jpg"
+    ];
+
+    let i = 0;
+    const gate  = document.getElementById('gate');
+    const stage = document.getElementById('stage');
+    const img   = document.getElementById('img');
+    const goBtn = document.getElementById('go');
+
+    function showCurrent(){ img.src = images[i]; }
+    function next(){ i = (i + 1) % images.length; showCurrent(); }
+    function prev(){ i = (i - 1 + images.length) % images.length; showCurrent(); }
+
+    img.addEventListener('error', () => {
+      alert('Kon niet laden: ' + images[i] + ' — check pad/naam (hoofdletters tellen).');
+    });
+
+    async function tryFullscreenOn(el){
+      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+      if (!req) return false;
+      try {
+        await req.call(el);
+        await new Promise(r => setTimeout(r, 50));
+        return !!(document.fullscreenElement || document.webkitFullscreenElement);
+      } catch(e) {
+        return false;
+      }
+    }
+
+    async function enter() {
+      gate.style.display = 'none';
+      stage.style.display = 'block';
+      showCurrent();
+      let ok = await tryFullscreenOn(stage);
+      if (!ok) ok = await tryFullscreenOn(document.documentElement);
+      window.scrollTo(0, 1);
+    }
+
+    goBtn.addEventListener('click', enter);
+
+    img.addEventListener('click', next);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') next();
+      if (e.key === 'ArrowLeft')  prev();
+    });
+
+    // Touch / swipe
+    let startX=0, startY=0, t0=0;
+    const SWIPE=40, TAP=10, TAPMS=600;
+    img.addEventListener('touchstart', (e)=>{
+      const t = e.changedTouches[0];
+      startX=t.clientX; startY=t.clientY; t0=Date.now();
+    }, {passive:true});
+    img.addEventListener('touchend', (e)=>{
+      const t=e.changedTouches[0];
+      const dx=t.clientX-startX, dy=t.clientY-startY, dt=Date.now()-t0;
+      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SWIPE && dt<1000){ dx<0 ? next() : prev(); return; }
+      if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS){ next(); }
+    }, {passive:true});
+  </script>
 </body>
 </html>
