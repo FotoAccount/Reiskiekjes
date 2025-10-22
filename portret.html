@@ -1,12 +1,75 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Portret</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body { height: 100%; margin: 0; background:#000; color:#fff; font-family: system-ui, sans-serif; }
+    .center { height: 100%; display: grid; place-items: center; gap: 1rem; text-align: center; }
+    button { padding: .8rem 1.2rem; font-size: 1rem; border: 0; border-radius: .5rem; cursor: pointer; }
+    #stage { display: none; height: 100%; width: 100%; }
+    #img { width: 100vw; height: 100vh; object-fit: contain; background:#000; }
+    .hint { position: fixed; bottom: 12px; left: 12px; font-size: .9rem; opacity: .7; }
+  </style>
 </head>
-<body style="text-align:center; background-color:black; color:white;">
-  <h1>Portretfoto's</h1>
-  <p>Hier komen de portretfoto's binnenkort te staan.</p>
-  <a href="./">← Terug naar start</a>
+<body>
+  <!-- Voor-scherm -->
+  <div id="gate" class="center">
+    <h1>Portret</h1>
+    <p>Klaar voor fullscreen?</p>
+    <button id="go">Go fullscreen</button>
+    <p><a href="./">← Terug naar start</a></p>
+  </div>
+
+  <!-- Slideshow-scherm -->
+  <div id="stage">
+    <img id="img" alt="Portrait" />
+    <div class="hint">←/→ volgende/vorige • klik/tik = volgende • Esc verlaat fullscreen</div>
+  </div>
+
+  <script>
+    // 1) ZET HIER JE BESTANDSNAAMMEN (relatief pad vanaf de root van je repo)
+    const images = [
+      "images/portret/portret1.jpg",
+      "images/portret/portret2.jpg",
+      "images/portret/portret3.jpg"
+    ];
+
+    // 2) Simpele state
+    let i = 0;
+    const gate = document.getElementById('gate');
+    const stage = document.getElementById('stage');
+    const img = document.getElementById('img');
+    const goBtn = document.getElementById('go');
+
+    function showCurrent() {
+      img.src = images[i];
+    }
+    function next() {
+      i = (i + 1) % images.length; showCurrent();
+    }
+    function prev() {
+      i = (i - 1 + images.length) % images.length; showCurrent();
+    }
+
+    // 3) Fullscreen starten en slideshow tonen
+    async function enter() {
+      gate.style.display = 'none';
+      stage.style.display = 'block';
+      showCurrent();
+      // vraag fullscreen aan op het hele document
+      if (document.documentElement.requestFullscreen) {
+        try { await document.documentElement.requestFullscreen(); } catch(e){}
+      }
+    }
+
+    goBtn.addEventListener('click', enter);
+    img.addEventListener('click', next);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') next();
+      if (e.key === 'ArrowLeft')  prev();
+    });
+  </script>
 </body>
 </html>
