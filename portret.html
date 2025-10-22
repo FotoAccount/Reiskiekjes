@@ -6,21 +6,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
   <style>
     html, body { margin:0; height:100%; background:#000; color:#fff; }
-    /* Gate (alleen knop om fullscreen te starten) */
+    /* Start-knop (enige UI vóór fullscreen) */
     #gate { height:100%; display:grid; place-items:center; background:#000; }
     #go { padding:.9rem 1.3rem; font-size:1rem; border:0; border-radius:.6rem; cursor:pointer; background:#fff; color:#000; }
 
-    /* Stage = volledig scherm, geen UI */
+    /* Volledig scherm, geen UI */
     #stage { display:none; position:fixed; inset:0; background:#000; touch-action:manipulation; }
     #img {
       position:fixed; inset:0;
-      width:100vw; height:100vh;           /* fallback */
+      width:100vw; height:100vh; /* fallback */
       object-fit:contain; background:#000;
       user-select:none; -webkit-user-drag:none; -webkit-touch-callout:none;
       cursor:none;
     }
-    @supports (height: 100dvh) {
-      #img { height:100dvh; }              /* juiste hoogte met dynamische adressenbalk */
+    @supports (height: 100dvh) { #img { height:100dvh; } }
+
+    /* Zorg dat in echte fullscreen ook alles perfect 100% is (Safari iOS + andere) */
+    :fullscreen #img, :-webkit-full-screen #img {
+      width:100vw !important;
+      height:100vh !important;
+    }
+    :fullscreen #stage, :-webkit-full-screen #stage {
+      position:fixed; inset:0; background:#000;
     }
   </style>
 </head>
@@ -51,34 +58,42 @@
     function next(){ i = (i + 1) % images.length; showCurrent(); }
     function prev(){ i = (i - 1 + images.length) % images.length; showCurrent(); }
 
-    // foutmelding als pad niet klopt
     img.addEventListener('error', () => {
       alert('Kon niet laden: ' + images[i] + ' — check pad/naam (hoofdletters tellen).');
     });
 
+    async function tryFullscreenOn(el){
+      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+      if (!req) return false;
+      try {
+        await req.call(el);
+        // heel kort wachten zodat Safari kan wisselen
+        await new Promise(r => setTimeout(r, 50));
+        return !!(document.fullscreenElement || document.webkitFullscreenElement);
+      } catch(e) {
+        return false;
+      }
+    }
+
     async function enter() {
-      // eerst naar stage
       gate.style.display = 'none';
       stage.style.display = 'block';
       showCurrent();
 
-      // vraag fullscreen op het stage-element (beste kans op mobiel)
-      const el = stage;
-      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-      if (req) {
-        try { await req.call(el); } catch (e) { /* gebruiker kan weigeren; we gaan door zonder */ }
-      }
+      // 1) Probeer fullscreen op het stage-element
+      let ok = await tryFullscreenOn(stage);
 
-      // kleine nudge om eventuele iOS balk te laten verdwijnen
-      setTimeout(() => { window.scrollTo(0, 1); }, 50);
+      // 2) Zo niet: probeer documentElement als fallback
+      if (!ok) ok = await tryFullscreenOn(document.documentElement);
+
+      // 3) Klein zetje om iOS-balk te laten verdwijnen
+      window.scrollTo(0, 1);
     }
 
     goBtn.addEventListener('click', enter);
 
-    // Interactie (onzichtbaar): tik = volgende, swipe links/rechts
+    // Interactie: tik of swipe wisselt foto, pijltjes op laptop
     img.addEventListener('click', next);
-
-    // toetsenbord (laptop)
     document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowRight') next();
       if (e.key === 'ArrowLeft')  prev();
