@@ -1,2 +1,2 @@
 # Reiskiekjes
-Beste zelfgemaakte platen van afgelopen jaren 
+Beste zelfgemaakte foto's van afgelopen jaren 
