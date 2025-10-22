@@ -70,6 +70,38 @@
       if (e.key === 'ArrowRight') next();
       if (e.key === 'ArrowLeft')  prev();
     });
+// --- Touch / swipe support (mobiel) ---
+let startX = 0, startY = 0, startTime = 0;
+const SWIPE_PX = 40;      // minimaal horizontale beweging
+const TAP_PX = 10;        // max beweging om als 'tap' te tellen
+const TAP_MS = 600;       // max tijd voor tap
+
+img.addEventListener('touchstart', (e) => {
+  const t = e.changedTouches[0];
+  startX = t.clientX;
+  startY = t.clientY;
+  startTime = Date.now();
+}, { passive: true });
+
+img.addEventListener('touchend', (e) => {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - startX;
+  const dy = t.clientY - startY;
+  const dt = Date.now() - startTime;
+
+  // horizontale swipe (sneller en duidelijker dan verticaal)
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_PX && dt < 1000) {
+    if (dx < 0) next(); else prev();
+    return;
+  }
+  // tap (kleine beweging, korte tik)
+  if (Math.abs(dx) < TAP_PX && Math.abs(dy) < TAP_PX && dt < TAP_MS) {
+    next();
+  }
+}, { passive: true });
+
+
+    
   </script>
 </body>
 </html>
