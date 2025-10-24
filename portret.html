@@ -13,15 +13,24 @@
   <style>
     html, body { margin:0; height:100%; background:#000; color:#fff; }
     /* Canvas */
-    #stage { position:fixed; inset:0; background:#000; touch-action:manipulation; }
-    #img {
-      position:fixed; inset:0;
-      width:100vw; height:100vh; object-fit:contain; background:#000;
-      user-select:none; -webkit-user-drag:none; -webkit-touch-callout:none; cursor:none;
-      z-index:1;
-    }
-    @supports (height: 100dvh) { #img { height:100dvh; } }
-
+    #stage {
+  position: fixed; inset: 0;
+  overflow: hidden;
+  background: #000;
+}
+#img, #imgNext {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  object-position: center;
+  background: #000;
+  transition: transform 0.4s ease;
+}
+@supports (height: 100dvh) {
+  #img, #imgNext { height: 100dvh; }
+}
     /* Fullscreen-knop (rechts-onder) */
     #fs {
       position: fixed;
@@ -42,19 +51,13 @@
   </style>
 </head>
 <body>
-  <!-- Slideshow -->
-  <div id="stage" aria-hidden="false">
+  <div id="stage">
     <img id="img" alt="Portret" />
-    <button id="fs" aria-label="Volledig scherm" title="Volledig scherm">
-      <!-- Fullscreen-icoon (SVG) -->
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm14 2h-2v2h4v-4h-2v2z"/>
-      </svg>
-    </button>
+    <img id="imgNext" alt="Volgende" />
   </div>
 
   <script>
-    // -- jouw foto's (je zei: direct in /images/) --
+    // --- jouw foto's ---
     const images = [
       "images/p1.jpg",
       "images/p2.jpg",
@@ -62,51 +65,55 @@
     ];
 
     let i = 0;
-    const stage = document.getElementById('stage');
-    const img   = document.getElementById('img');
-    const fsBtn = document.getElementById('fs');
+    const stage = document.getElementById("stage");
+    const img = document.getElementById("img");
+    const imgNext = document.getElementById("imgNext");
 
-    function showCurrent(){ img.src = images[i]; }
-    function next(){ i = (i + 1) % images.length; showCurrent(); }
-    function prev(){ i = (i - 1 + images.length) % images.length; showCurrent(); }
-    showCurrent();
+    // toon eerste foto
+    img.src = images[i];
 
-    img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
+    // animatie-instellingen
+    const DURATION = 400; // ms
+    let animating = false;
 
-    // Fullscreen via de standaard API (werkt direct na 1 tap; iOS laat soms nog dunne chrome zien via Safari)
-    async function enterFullscreen(){
-      const req = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.msRequestFullscreen;
-      try { if (req) await req.call(stage); } catch(e){}
-      document.body.classList.add('fs');
-      // kleine nudge om dynamische balken te laten inklappen
-      setTimeout(()=>window.scrollTo(0,1), 50);
+    function slideTo(nextIndex, direction) {
+      if (animating) return;
+      animating = true;
+
+      imgNext.src = images[nextIndex];
+      imgNext.style.transform = `translateX(${direction * 100}%)`;
+      imgNext.style.transition = "none";
+      requestAnimationFrame(() => {
+        imgNext.style.transition = `transform ${DURATION}ms ease`;
+        img.style.transition = `transform ${DURATION}ms ease`;
+        img.style.transform = `translateX(${-direction * 100}%)`;
+        imgNext.style.transform = "translateX(0)";
+      });
+
+      setTimeout(() => {
+        img.src = images[nextIndex];
+        img.style.transition = "none";
+        img.style.transform = "translateX(0)";
+        imgNext.style.transition = "none";
+        imgNext.style.transform = "translateX(100%)";
+        i = nextIndex;
+        animating = false;
+      }, DURATION);
     }
-    fsBtn.addEventListener('click', enterFullscreen);
 
-    // Tap/klik en toetsenbord
-    img.addEventListener('click', next);
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft')  prev();
-    });
+    function next() { slideTo((i + 1) % images.length, 1); }
+    function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
 
-    // Swipe met edge-guard tegen iOS back-gesture
-    let sx=0, sy=0, t0=0; const EDGE=24, SW=40, TAP=10, TAPMS=600;
-    img.addEventListener('touchstart', e => {
+    // swipe-detectie
+    let sx=0, sy=0, t0=0; const SW=40, TAP=10, TAPMS=600;
+    img.addEventListener('touchstart', e=>{
       const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
-      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; } // negeer rand-swipes
     }, {passive:true});
-    img.addEventListener('touchend', e => {
-      if (sx === 0 && sy === 0) return;
+    img.addEventListener('touchend', e=>{
       const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-t0;
-      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); return; }
-      if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
+      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); }
+      else if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
     }, {passive:true});
-
-    // Service worker registreren (voor Android install prompt + nette app-shell)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(()=>{});
-    }
   </script>
 </body>
 </html>
