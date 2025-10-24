@@ -11,7 +11,12 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
-    /* Vol scherm + geen scroll/bounce */
+    :root {
+      --divider: 30px;      /* zwarte scheidslijn tijdens animatie */
+      --anim-ms: 700ms;     /* duur van de slide animatie */
+    }
+
+    /* Vol scherm + geen scroll/bounce + clean font */
     html, body {
       margin: 0;
       height: 100%;
@@ -21,6 +26,7 @@
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
+      font-family: -apple-system, system-ui, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
     }
 
     /* Canvas */
@@ -33,34 +39,70 @@
     }
 
     /* Twee lagen die horizontaal schuiven */
-   #img, #imgNext {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  background: #000;
-  transition: transform 0.7s ease;
-  /* geen box-shadow hier */
-}
-
-/* Zwarte rand alleen tijdens animatie */
-#stage.anim #img,
-#stage.anim #imgNext {
-  box-shadow: 0 0 0 30px #000; /* pas 6 aan naar smaak */
-}
+    #img, #imgNext {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;           /* beeldvullend; mag croppen */
+      object-position: center;
+      background: #000;
+      transition: transform var(--anim-ms) ease;
+      /* geen box-shadow hier in rust */
+    }
     #imgNext { transform: translateX(100%); }
+
+    /* Zwarte scheidslijn alleen tijdens animatie */
+    #stage.anim #img,
+    #stage.anim #imgNext {
+      box-shadow: 0 0 0 var(--divider) #000;
+    }
+
+    /* Caption links-onder (onzichtbaar tot swipe omhoog) */
+    #caption {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      max-width: min(90vw, 720px);
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+      color: #fff;
+      line-height: 1.2;
+      z-index: 5;
+      pointer-events: none;            /* laat swipes doorgaan */
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    #caption.show { opacity: 1; transform: translateY(0); }
+    #caption .country {
+      font-size: 16px;                 /* iets groter */
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    #caption .place {
+      margin-top: 2px;
+      font-size: 13px;                 /* iets kleiner */
+      opacity: 0.9;
+    }
   </style>
 </head>
 <body>
   <div id="stage">
     <img id="img" alt="Landscape" />
     <img id="imgNext" alt="Volgende" />
+
+    <!-- Caption (onder-links) -->
+    <div id="caption" aria-live="polite">
+      <div class="country"></div>
+      <div class="place"></div>
+    </div>
   </div>
 
   <script>
-    // --- Jouw landschapsfoto’s ---
+    // --- Jouw landschapsfoto’s (pad en namen exact) ---
     const images = [
       "images/L1.jpg",
       "images/L2.jpg",
@@ -71,22 +113,46 @@
       "images/L7.jpg"
     ];
 
+    // --- Per-foto metadata (zelfde volgorde en lengte als images) ---
+    const meta = [
+      { country: "Nederland",  place: "—" },
+      { country: "IJsland",    place: "Reynisfjara Beach" },
+      { country: "Frankrijk",  place: "Verdon Gorge" },
+      { country: "Italië",     place: "Dolomieten" },
+      { country: "Spanje",     place: "Picos de Europa" },
+      { country: "Portugal",   place: "Costa Vicentina" },
+      { country: "Noorwegen",  place: "Lofoten" }
+    ];
+    // ↑ Vul deze waardes met jouw echte land/plek per foto.
+
     let i = 0;
-    const stage   = document.getElementById("stage");
-    const img     = document.getElementById("img");
-    const imgNext = document.getElementById("imgNext");
+    const stage    = document.getElementById("stage");
+    const img      = document.getElementById("img");
+    const imgNext  = document.getElementById("imgNext");
+    const caption  = document.getElementById('caption');
+    const capCountry = caption.querySelector('.country');
+    const capPlace   = caption.querySelector('.place');
+
+    let captionVisible = false;
+
+    function setCaption(idx) {
+      const m = meta[idx] || { country: "", place: "" };
+      capCountry.textContent = m.country || "";
+      capPlace.textContent   = m.place   || "";
+    }
+    function showCaption() { captionVisible = true; caption.classList.add('show'); setCaption(i); }
+    function hideCaption() { captionVisible = false; caption.classList.remove('show'); }
 
     // Eerste foto tonen
     img.src = images[i];
 
-    const DURATION = 450; // ms
+    const DURATION = 700; // ms (matcht CSS var --anim-ms)
     let animating = false;
 
     function slideTo(nextIndex, direction) {
       if (animating) return;
       animating = true;
-      
-      stage.classList.add('anim'); 
+      stage.classList.add('anim'); // zwarte scheidslijn AAN tijdens animatie
 
       const nextSrc = images[nextIndex];
       const preImg = new Image();
@@ -116,9 +182,12 @@
           imgNext.style.transform  = "translateX(100%)";
           i = nextIndex;
           animating = false;
-          stage.classList.remove('anim');
-          
-          // Preload alvast de volgende foto voor extra smoothness
+          stage.classList.remove('anim'); // scheidslijn UIT in rust
+
+          // Caption updaten als die zichtbaar is
+          if (captionVisible) setCaption(i);
+
+          // Preload alvast de volgende foto
           const preloadNext = new Image();
           preloadNext.src = images[(nextIndex + 1) % images.length];
         }, DURATION);
@@ -127,23 +196,39 @@
       preImg.onerror = () => {
         console.warn("Kon afbeelding niet laden:", nextSrc);
         animating = false;
+        stage.classList.remove('anim');
       };
     }
 
     function next() { slideTo((i + 1) % images.length, 1); }
     function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
 
-    // Swipe-detectie (tap = volgende) + edge-guard tegen iOS back-gesture
-    let sx=0, sy=0, t0=0; const EDGE=24, SW=40, TAP=10, TAPMS=600;
+    // Swipe-detectie (tap = volgende) + edge-guard + vertical for caption
+    let sx=0, sy=0, t0=0;
+    const EDGE=24, SW=40, TAP=10, TAPMS=600, SWIPE_Y=40;
+
     stage.addEventListener('touchstart', e=>{
       const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
-      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; } // negeer rand-swipes
+      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; } // negeer rand-swipes (iOS back-gesture)
     }, {passive:true});
+
     stage.addEventListener('touchend', e=>{
       if (sx===0 && sy===0) return;
       const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-t0;
-      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); }
-      else if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
+
+      const isHorizontal = Math.abs(dx) > Math.abs(dy);
+      const isVertical   = !isHorizontal;
+
+      // Horizontaal: wissel foto
+      if (isHorizontal && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); return; }
+
+      // Tik = volgende
+      if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) { next(); return; }
+
+      // Verticaal: caption tonen/verbergen
+      if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
+        if (dy < 0) showCaption(); else hideCaption();
+      }
     }, {passive:true});
 
     // Muis/keyboard (voor desktop)
@@ -151,6 +236,7 @@
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowRight') next();
       if (e.key === 'ArrowLeft')  prev();
+      if (e.key.toLowerCase?.() === 'i') { captionVisible ? hideCaption() : showCaption(); }
     });
 
     // Simpele foutmelding bij verkeerd pad
