@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
   <style>
     html, body { margin:0; height:100%; background:#000; color:#fff; }
+    /* Slideshow-canvas */
     #stage { position:fixed; inset:0; background:#000; touch-action:manipulation; }
     #img {
       position:fixed; inset:0;
@@ -13,29 +14,37 @@
       user-select:none; -webkit-user-drag:none; -webkit-touch-callout:none; cursor:none;
     }
     @supports (height: 100dvh) { #img { height:100dvh; } }
-    /* Fullscreen-button rechts onderin */
+
+    /* Fullscreen-knop (rechts-onder) */
     #fs {
       position:fixed; right:12px; bottom:calc(12px + env(safe-area-inset-bottom));
       width:44px; height:44px; display:grid; place-items:center;
       background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.25);
       border-radius:10px; cursor:pointer; -webkit-tap-highlight-color:transparent;
+      opacity:1; transition:opacity .6s ease 2s;
     }
     #fs svg { width:22px; height:22px; fill:#fff; }
-    /* Knop even laten zien en dan subtiel weg-faden */
-    #fs { opacity:1; transition:opacity .6s ease 2s; }
     body.fs #fs { opacity:.15; }
     #fs:active { transform:scale(.98); }
+
+    /* Onzichtbare video die fullscreen mag vragen op iOS (niet display:none!) */
+    #fsVideo {
+      position:fixed; inset:0; width:1px; height:1px; opacity:0;
+      pointer-events:none; background:#000;
+    }
   </style>
 </head>
 <body>
+  <!-- Onzichtbare video 'sleutel' voor iOS-fullscreen -->
+  <video id="fsVideo" playsinline muted></video>
+
+  <!-- Slideshow -->
   <div id="stage" aria-hidden="false">
     <img id="img" alt="Portret" />
     <button id="fs" aria-label="Volledig scherm" title="Volledig scherm">
-      <!-- Fullscreen icon (SVG) -->
+      <!-- Fullscreen-icoon (SVG) -->
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm14 2h-2v2h4v-4h-2v2zM9 8h6v8H9z" fill="none"/>
-        <path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm14 2h-2v2h4v-4h-2v2zM9 8h6v8H9z" opacity=".0"/>
-        <path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm14 2h-2v2h4v-4h-2v2z" />
+        <path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm14 2h-2v2h4v-4h-2v2z"/>
       </svg>
     </button>
   </div>
@@ -43,42 +52,61 @@
   <script>
     // -- jouw foto's --
     const images = [
-      "images/p1.jpg",
-      "images/p2.jpg",
-      "images/p3.jpg"
+      "images/portret/p1.jpg",
+      "images/portret/p2.jpg",
+      "images/portret/p3.jpg"
     ];
 
     let i = 0;
     const stage = document.getElementById('stage');
     const img   = document.getElementById('img');
     const fsBtn = document.getElementById('fs');
+    const fsVideo = document.getElementById('fsVideo');
 
     function showCurrent(){ img.src = images[i]; }
     function next(){ i = (i + 1) % images.length; showCurrent(); }
     function prev(){ i = (i - 1 + images.length) % images.length; showCurrent(); }
 
-    // init
+    // init eerste foto
     showCurrent();
 
     // foutmelding als pad niet klopt
     img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
 
-    // fullscreen
-    async function goFullscreen(el){
-      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-      if (!req) return false;
-      try { await req.call(el); document.body.classList.add('fs'); return true; } catch { return false; }
+    // Fullscreen: eerst iOS video-route (YouTube-style), anders standaard Fullscreen API
+    async function enterFullscreen(){
+      // iOS-specifiek: echte video-fullscreen
+      if (fsVideo && typeof fsVideo.webkitEnterFullscreen === 'function') {
+        try {
+          fsVideo.webkitEnterFullscreen();
+          document.body.classList.add('fs');
+          return;
+        } catch (e) {
+          // val door naar reguliere fullscreen
+        }
+      }
+      // Fallback (Android/desktop/iOS zonder video-route)
+      const req = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.msRequestFullscreen;
+      if (req) {
+        try { await req.call(stage); document.body.classList.add('fs'); } catch {}
+      }
     }
-    fsBtn.addEventListener('click', () => { goFullscreen(stage); });
 
-    // interactie
+    fsBtn.addEventListener('click', enterFullscreen);
+
+    // Interactie
     img.addEventListener('click', next);
-    document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') next(); if (e.key === 'ArrowLeft') prev(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') next();
+      if (e.key === 'ArrowLeft')  prev();
+    });
 
-    // swipe
+    // Swipe
     let sx=0, sy=0, t0=0; const SW=40, TAP=10, TAPMS=600;
-    img.addEventListener('touchstart', e => { const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now(); }, {passive:true});
-    img.addEventListener('touchend',   e => {
+    img.addEventListener('touchstart', e => {
+      const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
+    }, {passive:true});
+    img.addEventListener('touchend', e => {
       const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-t0;
       if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); return; }
       if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
