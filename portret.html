@@ -3,40 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <title>Portret</title>
+
+  <!-- PWA instellingen -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+
   <style>
-    /* VULLEND CANVAS */
+    /* Volledig scherm zonder randen */
     html, body { margin:0; height:100%; background:#000; color:#fff; }
     #stage {
       position: fixed; inset: 0;
-      overflow: hidden;               /* verberg schuivende randen */
+      overflow: hidden;
       background: #000;
       touch-action: manipulation;
     }
-    /* BEIDE IMAGES LAGEN OVER ELKAAR, WE SCHUIVEN ZE */
+
+    /* Foto’s overlappen elkaar, we schuiven ertussen */
     #img, #imgNext {
       position: absolute; inset: 0;
-      width: 100vw; height: 100vh;    /* fallback */
-      object-fit: cover;               /* altijd schermvullend, mag croppen */
+      width: 100vw; height: 100vh;
+      object-fit: cover;
       object-position: center;
       background: #000;
-      transition: transform 0.4s ease; /* de slide-animatie */
+      transition: transform 0.4s ease;
     }
     @supports (height: 100dvh) {
       #img, #imgNext { height: 100dvh; }
     }
-    /* Volgende foto staat startend rechts buiten beeld */
     #imgNext { transform: translateX(100%); }
   </style>
 </head>
 <body>
   <div id="stage">
-    <img id="img" alt="Huidige" />
+    <img id="img" alt="Portret" />
     <img id="imgNext" alt="Volgende" />
   </div>
 
   <script>
-    // --- jouw foto's ---
+    // --- Jouw portretfoto’s ---
     const images = [
       "images/p1.jpg",
       "images/p2.jpg",
@@ -48,10 +54,8 @@
     const img     = document.getElementById("img");
     const imgNext = document.getElementById("imgNext");
 
-    // eerste foto tonen
     img.src = images[i];
 
-    // animatie-instellingen
     const DURATION = 400; // ms
     let animating = false;
 
@@ -59,13 +63,11 @@
       if (animating) return;
       animating = true;
 
-      // zet de volgende foto klaar buiten beeld (links of rechts)
       imgNext.src = images[nextIndex];
       imgNext.style.transition = "none";
       img.style.transition = "none";
       imgNext.style.transform = `translateX(${direction * 100}%)`;
 
-      // force reflow, dan animatie aan
       requestAnimationFrame(() => {
         imgNext.style.transition = `transform ${DURATION}ms ease`;
         img.style.transition     = `transform ${DURATION}ms ease`;
@@ -73,7 +75,6 @@
         imgNext.style.transform  = "translateX(0)";
       });
 
-      // na animatie wisselen we de rollen
       setTimeout(() => {
         img.src = images[nextIndex];
         img.style.transition = "none";
@@ -88,11 +89,11 @@
     function next() { slideTo((i + 1) % images.length, 1); }
     function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
 
-    // swipe-detectie (met tik = volgende)
-    let sx=0, sy=0, t0=0; const SW=40, TAP=10, TAPMS=600, EDGE=24;
+    // Swipe-detectie (en tik = volgende)
+    let sx=0, sy=0, t0=0; const EDGE=24, SW=40, TAP=10, TAPMS=600;
     stage.addEventListener('touchstart', e=>{
       const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
-      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; } // negeer edge-swipe (iOS terug-gesture)
+      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; } // negeer rand-swipes
     }, {passive:true});
     stage.addEventListener('touchend', e=>{
       if (sx===0 && sy===0) return;
@@ -101,15 +102,20 @@
       else if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
     }, {passive:true});
 
-    // muis/keyboard (handig op laptop)
+    // Klik of pijltjes
     stage.addEventListener('click', next);
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowRight') next();
       if (e.key === 'ArrowLeft')  prev();
     });
 
-    // laadfout zichtbaar maken
+    // Als pad niet klopt
     img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
+
+    // Service worker registreren (voor PWA)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    }
   </script>
 </body>
 </html>
