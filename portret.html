@@ -6,28 +6,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
   <style>
     html, body { margin:0; height:100%; background:#000; color:#fff; }
+
     /* Slideshow-canvas */
     #stage { position:fixed; inset:0; background:#000; touch-action:manipulation; }
     #img {
       position:fixed; inset:0;
       width:100vw; height:100vh; object-fit:contain; background:#000;
       user-select:none; -webkit-user-drag:none; -webkit-touch-callout:none; cursor:none;
+      z-index:1; /* onder de knop */
     }
     @supports (height: 100dvh) { #img { height:100dvh; } }
 
     /* Fullscreen-knop (rechts-onder) */
     #fs {
-      position:fixed; right:12px; bottom:calc(12px + env(safe-area-inset-bottom));
-      width:44px; height:44px; display:grid; place-items:center;
-      background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.25);
-      border-radius:10px; cursor:pointer; -webkit-tap-highlight-color:transparent;
-      opacity:1; transition:opacity .6s ease 2s;
+      position: fixed;
+      right: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      width: 64px;              /* iets groter voor mobiel */
+      height: 64px;
+      z-index: 10000;           /* zeker boven de foto */
+      display: grid;
+      place-items: center;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 12px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      opacity: 1;
+      transition: opacity .6s ease 2s;
     }
-    #fs svg { width:22px; height:22px; fill:#fff; }
-    body.fs #fs { opacity:.15; }
-    #fs:active { transform:scale(.98); }
+    #fs svg { width: 28px; height: 28px; fill: #fff; }
+    body.fs #fs { opacity: .15; }
+    #fs:active { transform: scale(.98); }
 
-    /* Onzichtbare video die fullscreen mag vragen op iOS (niet display:none!) */
+    /* Onzichtbare video (niet display:none!) die fullscreen mag aanvragen op iOS */
     #fsVideo {
       position:fixed; inset:0; width:1px; height:1px; opacity:0;
       pointer-events:none; background:#000;
@@ -35,17 +47,13 @@
   </style>
 </head>
 <body>
-  <!-- Onzichtbare video 'sleutel' voor iOS-fullscreen -->
-  <video id="fsVideo" playsinline muted></video>
-  
-<video id="fsVideo" playsinline muted preload="auto" src="videos/blank.mp4"
-  style="position:fixed; inset:0; width:1px; height:1px; opacity:0; pointer-events:none; background:#000;">
-</video>
-  
+  <!-- Onzichtbare video 'sleutel' met echte bron -->
+  <video id="fsVideo" playsinline muted preload="auto" src="videos/blank.mp4"></video>
+
   <!-- Slideshow -->
   <div id="stage" aria-hidden="false">
     <img id="img" alt="Portret" />
-    <button id="fs" aria-label="Volledig scherm" title="Volledig scherm">
+    <button id="fs" aria-label="Volledig scherm" title="Volledig scherm" onclick="enterFullscreen()">
       <!-- Fullscreen-icoon (SVG) -->
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm14 2h-2v2h4v-4h-2v2z"/>
@@ -56,15 +64,14 @@
   <script>
     // -- jouw foto's --
     const images = [
-      "images/p1.jpg",
-      "images/p2.jpg",
-      "images/p3.jpg"
+      "images/portret/p1.jpg",
+      "images/portret/p2.jpg",
+      "images/portret/p3.jpg"
     ];
 
     let i = 0;
-    const stage = document.getElementById('stage');
-    const img   = document.getElementById('img');
-    const fsBtn = document.getElementById('fs');
+    const stage   = document.getElementById('stage');
+    const img     = document.getElementById('img');
     const fsVideo = document.getElementById('fsVideo');
 
     function showCurrent(){ img.src = images[i]; }
@@ -79,25 +86,29 @@
 
     // Fullscreen: eerst iOS video-route (YouTube-style), anders standaard Fullscreen API
     async function enterFullscreen(){
-  const fsVideo = document.getElementById('fsVideo');
+      // 1) iOS: echte video-fullscreen op verborgen video-element
+      if (fsVideo && typeof fsVideo.webkitEnterFullscreen === 'function') {
+        try {
+          // sommige iOS-versies willen een play() poging vooraf (mag muted/inline)
+          try { await fsVideo.play(); } catch(e) {}
+          fsVideo.webkitEnterFullscreen();
+          document.body.classList.add('fs');
+          return;
+        } catch (e) {
+          // doorvallen naar reguliere fullscreen
+        }
+      }
 
-  if (fsVideo && typeof fsVideo.webkitEnterFullscreen === 'function') {
-    try {
-      try { await fsVideo.play().catch(()=>{}); } catch(e) {}
-      fsVideo.webkitEnterFullscreen();
-      document.body.classList.add('fs');
-      return;
-    } catch (e) {}
-  }
+      // 2) Fallback (Android/desktop/iOS zonder video-route)
+      const req = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.msRequestFullscreen;
+      if (req) {
+        try { await req.call(stage); document.body.classList.add('fs'); return; }
+        catch(e) {}
+      }
 
-  const stage = document.getElementById('stage');
-  const req = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.msRequestFullscreen;
-  if (req) {
-    try { await req.call(stage); document.body.classList.add('fs'); } catch {}
-  }
-}
-
-    fsBtn.addEventListener('click', enterFullscreen);
+      // 3) Laatste duwtje voor iOS om balken in te klappen
+      window.scrollTo(0, 1);
+    }
 
     // Interactie
     img.addEventListener('click', next);
