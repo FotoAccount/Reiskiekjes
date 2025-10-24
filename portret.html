@@ -4,35 +4,36 @@
   <meta charset="UTF-8" />
   <title>Portret</title>
 
-  <!-- PWA instellingen -->
+  <!-- PWA -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
 
   <style>
-    /* Volledig scherm zonder randen */
+    /* Vol scherm canvas (zonder vh/dvh quirk) */
     html, body { margin:0; height:100%; background:#000; color:#fff; }
-   #stage {
-  position: fixed;
-  inset: 0;                 /* vult exact het hele venster, zonder vh-bugs */
-  overflow: hidden;
-  background: #000;
-  touch-action: manipulation;
-}
+    #stage {
+      position: fixed;
+      inset: 0;                 /* exact het hele venster */
+      overflow: hidden;
+      background: #000;
+      touch-action: manipulation;
+    }
 
-/* Laat de images gewoon 100% van de container pakken i.p.v. 100vh/dvh */
-#img, #imgNext {
-  position: absolute; inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;        /* écht beeldvullend; kan croppen */
-  object-position: center;
-  background: #000;
-  transition: transform 0.4s ease;
-}
-
-#imgNext { transform: translateX(100%); }
+    /* Twee lagen die we horizontaal laten schuiven */
+    #img, #imgNext {
+      position: absolute;
+      inset: 0;
+      width: 100%;              /* pak 100% van de container i.p.v. 100vh */
+      height: 100%;             /* voorkomt iOS randjes */
+      object-fit: cover;        /* altijd beeldvullend (mag croppen) */
+      object-position: center;
+      background: #000;
+      transition: transform 0.4s ease;
+    }
+    /* Volgende foto start buiten beeld rechts */
+    #imgNext { transform: translateX(100%); }
   </style>
 </head>
 <body>
@@ -54,8 +55,10 @@
     const img     = document.getElementById("img");
     const imgNext = document.getElementById("imgNext");
 
+    // eerste foto tonen
     img.src = images[i];
 
+    // animatie-instellingen
     const DURATION = 400; // ms
     let animating = false;
 
@@ -63,11 +66,13 @@
       if (animating) return;
       animating = true;
 
+      // volgende foto klaarzetten buiten beeld (links of rechts)
       imgNext.src = images[nextIndex];
       imgNext.style.transition = "none";
       img.style.transition = "none";
       imgNext.style.transform = `translateX(${direction * 100}%)`;
 
+      // start animatie
       requestAnimationFrame(() => {
         imgNext.style.transition = `transform ${DURATION}ms ease`;
         img.style.transition     = `transform ${DURATION}ms ease`;
@@ -75,6 +80,7 @@
         imgNext.style.transform  = "translateX(0)";
       });
 
+      // na animatie: nieuwe foto vastzetten en lagen resetten
       setTimeout(() => {
         img.src = images[nextIndex];
         img.style.transition = "none";
@@ -89,7 +95,7 @@
     function next() { slideTo((i + 1) % images.length, 1); }
     function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
 
-    // Swipe-detectie (en tik = volgende)
+    // Swipe-detectie (tap = volgende) + edge-guard tegen iOS back-gesture
     let sx=0, sy=0, t0=0; const EDGE=24, SW=40, TAP=10, TAPMS=600;
     stage.addEventListener('touchstart', e=>{
       const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
@@ -102,17 +108,17 @@
       else if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
     }, {passive:true});
 
-    // Klik of pijltjes
+    // Muis/keyboard (handig op laptop)
     stage.addEventListener('click', next);
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowRight') next();
       if (e.key === 'ArrowLeft')  prev();
     });
 
-    // Als pad niet klopt
+    // Foutmelding als pad niet klopt
     img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
 
-    // Service worker registreren (voor PWA)
+    // PWA service worker registreren
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(()=>{});
     }
