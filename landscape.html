@@ -10,42 +10,42 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
 
- <style>
-/* Vol scherm canvas */
-html, body {
-  margin: 0;
-  height: 100%;
-  background: #000;
-  color: #fff;
-  overflow: hidden;
-  touch-action: manipulation;
-}
+  <style>
+    /* Vol scherm + geen scroll/bounce */
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      color: #fff;
+      overflow: hidden;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
 
-/* Hoofdcontainer */
-#stage {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  background: #000;
-  touch-action: none;
-}
+    /* Canvas */
+    #stage {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      background: #000;
+      touch-action: none;
+    }
 
-/* Twee lagen over elkaar met zwarte rand (zoals Apple Photos) */
-#img, #imgNext {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  background: #000;
-  transition: transform 0.45s ease;
-  box-shadow: 0 0 0 6px #000; /* zwarte scheidslijn tussen foto's */
-}
-
-/* Volgende foto start buiten beeld rechts */
-#imgNext { transform: translateX(100%); }
-</style>
+    /* Twee lagen die horizontaal schuiven */
+    #img, #imgNext {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;           /* beeldvullend; mag croppen */
+      object-position: center;
+      background: #000;
+      transition: transform 0.45s ease;
+      box-shadow: 0 0 0 6px #000;  /* subtiele zwarte scheidslijn (Apple Photos vibe) */
+    }
+    #imgNext { transform: translateX(100%); }
+  </style>
 </head>
 <body>
   <div id="stage">
@@ -54,7 +54,7 @@ html, body {
   </div>
 
   <script>
-    // --- jouw landscape-foto's ---
+    // --- Jouw landschapsfoto’s ---
     const images = [
       "images/L1.jpg",
       "images/L2.jpg",
@@ -70,47 +70,61 @@ html, body {
     const img     = document.getElementById("img");
     const imgNext = document.getElementById("imgNext");
 
-    // eerste foto tonen
+    // Eerste foto tonen
     img.src = images[i];
 
-    // animatie-instellingen
-    const DURATION = 400; // ms
+    const DURATION = 450; // ms
     let animating = false;
 
     function slideTo(nextIndex, direction) {
       if (animating) return;
       animating = true;
 
-      // volgende foto klaarzetten buiten beeld (links of rechts)
-      imgNext.src = images[nextIndex];
-      imgNext.style.transition = "none";
-      img.style.transition = "none";
-      imgNext.style.transform = `translateX(${direction * 100}%)`;
+      const nextSrc = images[nextIndex];
+      const preImg = new Image();
+      preImg.src = nextSrc;
 
-      // start animatie
-      requestAnimationFrame(() => {
-        imgNext.style.transition = `transform ${DURATION}ms ease`;
-        img.style.transition     = `transform ${DURATION}ms ease`;
-        img.style.transform      = `translateX(${-direction * 100}%)`;
-        imgNext.style.transform  = "translateX(0)";
-      });
-
-      // na animatie: nieuwe foto staat vast, reset lagen
-      setTimeout(() => {
-        img.src = images[nextIndex];
-        img.style.transition = "none";
-        img.style.transform  = "translateX(0)";
+      // Wacht tot de nieuwe foto geladen is → geen "oude foto" glitch
+      preImg.onload = () => {
+        imgNext.src = nextSrc;
         imgNext.style.transition = "none";
-        imgNext.style.transform  = "translateX(100%)";
-        i = nextIndex;
+        img.style.transition = "none";
+        imgNext.style.transform = `translateX(${direction * 100}%)`;
+
+        // Start animatie
+        requestAnimationFrame(() => {
+          imgNext.style.transition = `transform ${DURATION}ms ease`;
+          img.style.transition     = `transform ${DURATION}ms ease`;
+          img.style.transform      = `translateX(${-direction * 100}%)`;
+          imgNext.style.transform  = "translateX(0)";
+        });
+
+        // Na animatie: lagen resetten
+        setTimeout(() => {
+          img.src = nextSrc;
+          img.style.transition = "none";
+          img.style.transform  = "translateX(0)";
+          imgNext.style.transition = "none";
+          imgNext.style.transform  = "translateX(100%)";
+          i = nextIndex;
+          animating = false;
+
+          // Preload alvast de volgende foto voor extra smoothness
+          const preloadNext = new Image();
+          preloadNext.src = images[(nextIndex + 1) % images.length];
+        }, DURATION);
+      };
+
+      preImg.onerror = () => {
+        console.warn("Kon afbeelding niet laden:", nextSrc);
         animating = false;
-      }, DURATION);
+      };
     }
 
     function next() { slideTo((i + 1) % images.length, 1); }
     function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
 
-    // Swipe-detectie (met tap = volgende) + edge-guard tegen iOS back-gesture
+    // Swipe-detectie (tap = volgende) + edge-guard tegen iOS back-gesture
     let sx=0, sy=0, t0=0; const EDGE=24, SW=40, TAP=10, TAPMS=600;
     stage.addEventListener('touchstart', e=>{
       const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
@@ -123,20 +137,23 @@ html, body {
       else if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
     }, {passive:true});
 
-    // Muis/keyboard (handig op laptop)
+    // Muis/keyboard (voor desktop)
     stage.addEventListener('click', next);
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowRight') next();
       if (e.key === 'ArrowLeft')  prev();
     });
 
-    // Foutmelding als pad niet klopt
+    // Simpele foutmelding bij verkeerd pad
     img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
 
-    // PWA service worker registreren (voor installability/standalone ervaring)
+    // PWA service worker registreren
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(()=>{});
     }
+
+    // iOS rubber-band scroll blokkeren
+    document.addEventListener('touchmove', e => e.preventDefault(), {passive: false});
   </script>
 </body>
 </html>
