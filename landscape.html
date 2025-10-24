@@ -3,42 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <title>Landscape</title>
+
+  <!-- PWA -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+
   <style>
+    /* Vol scherm canvas */
     html, body { margin:0; height:100%; background:#000; color:#fff; }
-    #gate { height:100%; display:grid; place-items:center; background:#000; }
-    #go { padding:.9rem 1.3rem; font-size:1rem; border:0; border-radius:.6rem; cursor:pointer; background:#fff; color:#000; }
-
-    #stage { display:none; position:fixed; inset:0; background:#000; touch-action:manipulation; }
-    #img {
-      position:fixed; inset:0;
-      width:100vw; height:100vh;
-      object-fit:contain; background:#000;
-      user-select:none; -webkit-user-drag:none; -webkit-touch-callout:none;
-      cursor:none;
+    #stage {
+      position: fixed; inset: 0;
+      overflow: hidden;
+      background: #000;
+      touch-action: manipulation;
     }
-    @supports (height: 100dvh) { #img { height:100dvh; } }
-
-    :fullscreen #img, :-webkit-full-screen #img {
-      width:100vw !important;
-      height:100vh !important;
+    /* Twee lagen die over elkaar schuiven */
+    #img, #imgNext {
+      position: absolute; inset: 0;
+      width: 100vw; height: 100vh;          /* fallback */
+      object-fit: cover;                     /* altijd schermvullend (kan croppen) */
+      object-position: center;
+      background: #000;
+      transition: transform 0.4s ease;       /* slide animatie */
     }
-    :fullscreen #stage, :-webkit-full-screen #stage {
-      position:fixed; inset:0; background:#000;
+    @supports (height: 100dvh) {
+      #img, #imgNext { height: 100dvh; }     /* juiste hoogte met iOS dynamic bars */
     }
+    /* Volgende foto start buiten beeld rechts */
+    #imgNext { transform: translateX(100%); }
   </style>
 </head>
 <body>
-  <div id="gate">
-    <button id="go" type="button">Go fullscreen</button>
-  </div>
-
-  <div id="stage" aria-hidden="true">
+  <div id="stage">
     <img id="img" alt="Landscape" />
+    <img id="imgNext" alt="Volgende" />
   </div>
 
   <script>
-    // --- jouw foto's ---
+    // --- jouw landscape-foto's ---
     const images = [
       "images/L1.jpg",
       "images/L2.jpg",
@@ -50,61 +54,77 @@
     ];
 
     let i = 0;
-    const gate  = document.getElementById('gate');
-    const stage = document.getElementById('stage');
-    const img   = document.getElementById('img');
-    const goBtn = document.getElementById('go');
+    const stage   = document.getElementById("stage");
+    const img     = document.getElementById("img");
+    const imgNext = document.getElementById("imgNext");
 
-    function showCurrent(){ img.src = images[i]; }
-    function next(){ i = (i + 1) % images.length; showCurrent(); }
-    function prev(){ i = (i - 1 + images.length) % images.length; showCurrent(); }
+    // eerste foto tonen
+    img.src = images[i];
 
-    img.addEventListener('error', () => {
-      alert('Kon niet laden: ' + images[i] + ' — check pad/naam (hoofdletters tellen).');
-    });
+    // animatie-instellingen
+    const DURATION = 400; // ms
+    let animating = false;
 
-    async function tryFullscreenOn(el){
-      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-      if (!req) return false;
-      try {
-        await req.call(el);
-        await new Promise(r => setTimeout(r, 50));
-        return !!(document.fullscreenElement || document.webkitFullscreenElement);
-      } catch(e) {
-        return false;
-      }
+    function slideTo(nextIndex, direction) {
+      if (animating) return;
+      animating = true;
+
+      // volgende foto klaarzetten buiten beeld (links of rechts)
+      imgNext.src = images[nextIndex];
+      imgNext.style.transition = "none";
+      img.style.transition = "none";
+      imgNext.style.transform = `translateX(${direction * 100}%)`;
+
+      // start animatie
+      requestAnimationFrame(() => {
+        imgNext.style.transition = `transform ${DURATION}ms ease`;
+        img.style.transition     = `transform ${DURATION}ms ease`;
+        img.style.transform      = `translateX(${-direction * 100}%)`;
+        imgNext.style.transform  = "translateX(0)";
+      });
+
+      // na animatie: nieuwe foto staat vast, reset lagen
+      setTimeout(() => {
+        img.src = images[nextIndex];
+        img.style.transition = "none";
+        img.style.transform  = "translateX(0)";
+        imgNext.style.transition = "none";
+        imgNext.style.transform  = "translateX(100%)";
+        i = nextIndex;
+        animating = false;
+      }, DURATION);
     }
 
-    async function enter() {
-      gate.style.display = 'none';
-      stage.style.display = 'block';
-      showCurrent();
-      let ok = await tryFullscreenOn(stage);
-      if (!ok) ok = await tryFullscreenOn(document.documentElement);
-      window.scrollTo(0, 1);
-    }
+    function next() { slideTo((i + 1) % images.length, 1); }
+    function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
 
-    goBtn.addEventListener('click', enter);
+    // Swipe-detectie (met tap = volgende) + edge-guard tegen iOS back-gesture
+    let sx=0, sy=0, t0=0; const EDGE=24, SW=40, TAP=10, TAPMS=600;
+    stage.addEventListener('touchstart', e=>{
+      const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
+      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; } // negeer rand-swipes
+    }, {passive:true});
+    stage.addEventListener('touchend', e=>{
+      if (sx===0 && sy===0) return;
+      const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-t0;
+      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); }
+      else if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
+    }, {passive:true});
 
-    img.addEventListener('click', next);
-    document.addEventListener('keydown', (e) => {
+    // Muis/keyboard (handig op laptop)
+    stage.addEventListener('click', next);
+    document.addEventListener('keydown', e => {
       if (e.key === 'ArrowRight') next();
       if (e.key === 'ArrowLeft')  prev();
     });
 
-    // Touch / swipe
-    let startX=0, startY=0, t0=0;
-    const SWIPE=40, TAP=10, TAPMS=600;
-    img.addEventListener('touchstart', (e)=>{
-      const t = e.changedTouches[0];
-      startX=t.clientX; startY=t.clientY; t0=Date.now();
-    }, {passive:true});
-    img.addEventListener('touchend', (e)=>{
-      const t=e.changedTouches[0];
-      const dx=t.clientX-startX, dy=t.clientY-startY, dt=Date.now()-t0;
-      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SWIPE && dt<1000){ dx<0 ? next() : prev(); return; }
-      if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS){ next(); }
-    }, {passive:true});
+    // Foutmelding als pad niet klopt
+    img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
+
+    // PWA service worker registreren (voor installability/standalone ervaring)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    }
   </script>
 </body>
 </html>
