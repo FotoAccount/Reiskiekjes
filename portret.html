@@ -19,27 +19,34 @@
   background: #000;
   touch-action: none;
 }
-    #stage {
-      position: fixed;
-      inset: 0;                 /* exact het hele venster */
-      overflow: hidden;
-      background: #000;
-      touch-action: manipulation;
-    }
+   #stage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  background: #000;
+  touch-action: none;
+}
 
-    /* Twee lagen die we horizontaal laten schuiven */
-    #img, #imgNext {
-      position: absolute;
-      inset: 0;
-      width: 100%;              /* pak 100% van de container i.p.v. 100vh */
-      height: 100%;             /* voorkomt iOS randjes */
-      object-fit: cover;        /* altijd beeldvullend (mag croppen) */
-      object-position: center;
-      background: #000;
-      transition: transform 0.4s ease;
-    }
-    /* Volgende foto start buiten beeld rechts */
-    #imgNext { transform: translateX(100%); }
+/* forceer beeldvulling inclusief safe-areas */
+#img, #imgNext {
+  position: absolute;
+  top: calc(-1 * env(safe-area-inset-top));
+  left: calc(-1 * env(safe-area-inset-left));
+  right: calc(-1 * env(safe-area-inset-right));
+  bottom: calc(-1 * env(safe-area-inset-bottom));
+  width: auto;
+  height: auto;
+  min-width: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  object-position: center;
+  background: #000;
+  transition: transform 0.4s ease;
+}
+#imgNext { transform: translateX(100%); }
   </style>
 </head>
 <body>
