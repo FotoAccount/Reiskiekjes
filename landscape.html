@@ -10,30 +10,42 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
 
-  <style>
-    /* Vol scherm canvas */
-    html, body { margin:0; height:100%; background:#000; color:#fff; }
-    #stage {
-      position: fixed; inset: 0;
-      overflow: hidden;
-      background: #000;
-      touch-action: manipulation;
-    }
-    /* Twee lagen die over elkaar schuiven */
-    #img, #imgNext {
-      position: absolute; inset: 0;
-      width: 100vw; height: 100vh;          /* fallback */
-      object-fit: cover;                     /* altijd schermvullend (kan croppen) */
-      object-position: center;
-      background: #000;
-      transition: transform 0.4s ease;       /* slide animatie */
-    }
-    @supports (height: 100dvh) {
-      #img, #imgNext { height: 100dvh; }     /* juiste hoogte met iOS dynamic bars */
-    }
-    /* Volgende foto start buiten beeld rechts */
-    #imgNext { transform: translateX(100%); }
-  </style>
+ <style>
+/* Vol scherm canvas */
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  color: #fff;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+/* Hoofdcontainer */
+#stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  touch-action: none;
+}
+
+/* Twee lagen over elkaar met zwarte rand (zoals Apple Photos) */
+#img, #imgNext {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  background: #000;
+  transition: transform 0.45s ease;
+  box-shadow: 0 0 0 6px #000; /* zwarte scheidslijn tussen foto's */
+}
+
+/* Volgende foto start buiten beeld rechts */
+#imgNext { transform: translateX(100%); }
+</style>
 </head>
 <body>
   <div id="stage">
