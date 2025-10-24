@@ -59,34 +59,34 @@
     }
 
     /* Caption links-onder (onzichtbaar tot swipe omhoog) */
-    #caption {
-      position: absolute;
-      left: 14px;
-      bottom: 14px;
-      max-width: min(90vw, 720px);
-      padding: 10px 12px;
-      background: rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 10px;
-      color: #fff;
-      line-height: 1.2;
-      z-index: 5;
-      pointer-events: none;            /* laat swipes doorgaan */
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity .25s ease, transform .25s ease;
-    }
-    #caption.show { opacity: 1; transform: translateY(0); }
-    #caption .country {
-      font-size: 16px;                 /* iets groter */
-      font-weight: 600;
-      letter-spacing: 0.2px;
-    }
-    #caption .place {
-      margin-top: 2px;
-      font-size: 13px;                 /* iets kleiner */
-      opacity: 0.9;
-    }
+ /* Caption links-onder, strak witte tekst */
+#caption {
+  position: absolute;
+  left: 3vw;
+  bottom: 3vh;
+  z-index: 5;
+  color: #fff;
+  text-shadow: 0 0 6px rgba(0,0,0,0.4);   /* subtiele leesbaarheid op lichte beelden */
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .35s ease, transform .35s ease;
+}
+#caption.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+#caption .country {
+  font-size: clamp(16px, 2.8vw, 24px);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  margin-bottom: 2px;
+}
+#caption .place {
+  font-size: clamp(12px, 2vw, 18px);
+  font-weight: 400;
+  opacity: 0.95;
+}
   </style>
 </head>
 <body>
@@ -115,13 +115,13 @@
 
     // --- Per-foto metadata (zelfde volgorde en lengte als images) ---
     const meta = [
-      { country: "Nederland",  place: "—" },
-      { country: "IJsland",    place: "Reynisfjara Beach" },
-      { country: "Frankrijk",  place: "Verdon Gorge" },
-      { country: "Italië",     place: "Dolomieten" },
-      { country: "Spanje",     place: "Picos de Europa" },
-      { country: "Portugal",   place: "Costa Vicentina" },
-      { country: "Noorwegen",  place: "Lofoten" }
+      { country: "New Zealand",  place: "Tongariro National Park" },
+      { country: "New Zealand",    place: "Mount John" },
+      { country: "Cambodia",  place: "Angkor Wat" },
+      { country: "Austria",     place: "Pitztaler Glacier" },
+      { country: "Australia",     place: "Whitehaven Beach" },
+      { country: "Malaysia",   place: "Jungle" },
+      { country: "Australia",  place: "Noose National Park" }
     ];
     // ↑ Vul deze waardes met jouw echte land/plek per foto.
 
