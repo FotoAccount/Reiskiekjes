@@ -6,113 +6,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
   <style>
     html, body { margin:0; height:100%; background:#000; color:#fff; }
-    /* Start-knop (enige UI vóór fullscreen) */
-    #gate { height:100%; display:grid; place-items:center; background:#000; }
-    #go { padding:.9rem 1.3rem; font-size:1rem; border:0; border-radius:.6rem; cursor:pointer; background:#fff; color:#000; }
-
-    /* Volledig scherm, geen UI */
-    #stage { display:none; position:fixed; inset:0; background:#000; touch-action:manipulation; }
+    #stage { position:fixed; inset:0; background:#000; touch-action:manipulation; }
     #img {
       position:fixed; inset:0;
-      width:100vw; height:100vh; /* fallback */
-      object-fit:contain; background:#000;
-      user-select:none; -webkit-user-drag:none; -webkit-touch-callout:none;
-      cursor:none;
+      width:100vw; height:100vh; object-fit:contain; background:#000;
+      user-select:none; -webkit-user-drag:none; -webkit-touch-callout:none; cursor:none;
     }
     @supports (height: 100dvh) { #img { height:100dvh; } }
-
-    /* Zorg dat in echte fullscreen ook alles perfect 100% is (Safari iOS + andere) */
-    :fullscreen #img, :-webkit-full-screen #img {
-      width:100vw !important;
-      height:100vh !important;
+    /* Fullscreen-button rechts onderin */
+    #fs {
+      position:fixed; right:12px; bottom:calc(12px + env(safe-area-inset-bottom));
+      width:44px; height:44px; display:grid; place-items:center;
+      background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.25);
+      border-radius:10px; cursor:pointer; -webkit-tap-highlight-color:transparent;
     }
-    :fullscreen #stage, :-webkit-full-screen #stage {
-      position:fixed; inset:0; background:#000;
-    }
+    #fs svg { width:22px; height:22px; fill:#fff; }
+    /* Knop even laten zien en dan subtiel weg-faden */
+    #fs { opacity:1; transition:opacity .6s ease 2s; }
+    body.fs #fs { opacity:.15; }
+    #fs:active { transform:scale(.98); }
   </style>
 </head>
 <body>
-  <div id="gate">
-    <button id="go" type="button">Go fullscreen</button>
-  </div>
-
-  <div id="stage" aria-hidden="true">
+  <div id="stage" aria-hidden="false">
     <img id="img" alt="Portret" />
+    <button id="fs" aria-label="Volledig scherm" title="Volledig scherm">
+      <!-- Fullscreen icon (SVG) -->
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm14 2h-2v2h4v-4h-2v2zM9 8h6v8H9z" fill="none"/>
+        <path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm14 2h-2v2h4v-4h-2v2zM9 8h6v8H9z" opacity=".0"/>
+        <path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm14 2h-2v2h4v-4h-2v2z" />
+      </svg>
+    </button>
   </div>
 
   <script>
-    // --- jouw foto's ---
+    // -- jouw foto's --
     const images = [
-      "images/p1.jpg",
-      "images/p2.jpg",
-      "images/p3.jpg"
+      "images/portret/p1.jpg",
+      "images/portret/p2.jpg",
+      "images/portret/p3.jpg"
     ];
 
     let i = 0;
-    const gate  = document.getElementById('gate');
     const stage = document.getElementById('stage');
     const img   = document.getElementById('img');
-    const goBtn = document.getElementById('go');
+    const fsBtn = document.getElementById('fs');
 
     function showCurrent(){ img.src = images[i]; }
     function next(){ i = (i + 1) % images.length; showCurrent(); }
     function prev(){ i = (i - 1 + images.length) % images.length; showCurrent(); }
 
-    img.addEventListener('error', () => {
-      alert('Kon niet laden: ' + images[i] + ' — check pad/naam (hoofdletters tellen).');
-    });
+    // init
+    showCurrent();
 
-    async function tryFullscreenOn(el){
+    // foutmelding als pad niet klopt
+    img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
+
+    // fullscreen
+    async function goFullscreen(el){
       const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
       if (!req) return false;
-      try {
-        await req.call(el);
-        // heel kort wachten zodat Safari kan wisselen
-        await new Promise(r => setTimeout(r, 50));
-        return !!(document.fullscreenElement || document.webkitFullscreenElement);
-      } catch(e) {
-        return false;
-      }
+      try { await req.call(el); document.body.classList.add('fs'); return true; } catch { return false; }
     }
+    fsBtn.addEventListener('click', () => { goFullscreen(stage); });
 
-    async function enter() {
-      gate.style.display = 'none';
-      stage.style.display = 'block';
-      showCurrent();
-
-      // 1) Probeer fullscreen op het stage-element
-      let ok = await tryFullscreenOn(stage);
-
-      // 2) Zo niet: probeer documentElement als fallback
-      if (!ok) ok = await tryFullscreenOn(document.documentElement);
-
-      // 3) Klein zetje om iOS-balk te laten verdwijnen
-      window.scrollTo(0, 1);
-    }
-
-    goBtn.addEventListener('click', enter);
-
-    // Interactie: tik of swipe wisselt foto, pijltjes op laptop
+    // interactie
     img.addEventListener('click', next);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft')  prev();
-    });
+    document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') next(); if (e.key === 'ArrowLeft') prev(); });
 
-    // Touch / swipe
-    let startX=0, startY=0, t0=0;
-    const SWIPE=40, TAP=10, TAPMS=600;
-
-    img.addEventListener('touchstart', (e)=>{
-      const t = e.changedTouches[0];
-      startX=t.clientX; startY=t.clientY; t0=Date.now();
-    }, {passive:true});
-
-    img.addEventListener('touchend', (e)=>{
-      const t=e.changedTouches[0];
-      const dx=t.clientX-startX, dy=t.clientY-startY, dt=Date.now()-t0;
-      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SWIPE && dt<1000){ dx<0 ? next() : prev(); return; }
-      if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS){ next(); }
+    // swipe
+    let sx=0, sy=0, t0=0; const SW=40, TAP=10, TAPMS=600;
+    img.addEventListener('touchstart', e => { const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now(); }, {passive:true});
+    img.addEventListener('touchend',   e => {
+      const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-t0;
+      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); return; }
+      if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
     }, {passive:true});
   </script>
 </body>
