@@ -33,17 +33,23 @@
     }
 
     /* Twee lagen die horizontaal schuiven */
-    #img, #imgNext {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;           /* beeldvullend; mag croppen */
-      object-position: center;
-      background: #000;
-      transition: transform 0.45s ease;
-      box-shadow: 0 0 0 6px #000;  /* subtiele zwarte scheidslijn (Apple Photos vibe) */
-    }
+   #img, #imgNext {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  background: #000;
+  transition: transform 0.45s ease;
+  /* geen box-shadow hier */
+}
+
+/* Zwarte rand alleen tijdens animatie */
+#stage.anim #img,
+#stage.anim #imgNext {
+  box-shadow: 0 0 0 6px #000; /* pas 6 aan naar smaak */
+}
     #imgNext { transform: translateX(100%); }
   </style>
 </head>
@@ -79,6 +85,8 @@
     function slideTo(nextIndex, direction) {
       if (animating) return;
       animating = true;
+      
+      stage.classList.add('anim'); 
 
       const nextSrc = images[nextIndex];
       const preImg = new Image();
@@ -108,7 +116,8 @@
           imgNext.style.transform  = "translateX(100%)";
           i = nextIndex;
           animating = false;
-
+          stage.classList.remove('anim');
+          
           // Preload alvast de volgende foto voor extra smoothness
           const preloadNext = new Image();
           preloadNext.src = images[(nextIndex + 1) % images.length];
