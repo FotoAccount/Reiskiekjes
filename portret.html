@@ -3,17 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <title>Portret</title>
+
+  <!-- PWA -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+
   <style>
     html, body { margin:0; height:100%; background:#000; color:#fff; }
-
-    /* Slideshow-canvas */
+    /* Canvas */
     #stage { position:fixed; inset:0; background:#000; touch-action:manipulation; }
     #img {
       position:fixed; inset:0;
       width:100vw; height:100vh; object-fit:contain; background:#000;
       user-select:none; -webkit-user-drag:none; -webkit-touch-callout:none; cursor:none;
-      z-index:1; /* onder de knop */
+      z-index:1;
     }
     @supports (height: 100dvh) { #img { height:100dvh; } }
 
@@ -22,38 +27,25 @@
       position: fixed;
       right: 12px;
       bottom: calc(12px + env(safe-area-inset-bottom));
-      width: 64px;              /* iets groter voor mobiel */
-      height: 64px;
-      z-index: 10000;           /* zeker boven de foto */
-      display: grid;
-      place-items: center;
+      width: 56px; height: 56px;
+      z-index: 10000;
+      display: grid; place-items: center;
       background: rgba(0,0,0,.55);
       border: 1px solid rgba(255,255,255,.35);
       border-radius: 12px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      opacity: 1;
-      transition: opacity .6s ease 2s;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      opacity: 1; transition: opacity .6s ease 2s;
     }
-    #fs svg { width: 28px; height: 28px; fill: #fff; }
+    #fs svg { width: 24px; height: 24px; fill: #fff; }
     body.fs #fs { opacity: .15; }
     #fs:active { transform: scale(.98); }
-
-    /* Onzichtbare video (niet display:none!) die fullscreen mag aanvragen op iOS */
-    #fsVideo {
-      position:fixed; inset:0; width:1px; height:1px; opacity:0;
-      pointer-events:none; background:#000;
-    }
   </style>
 </head>
 <body>
-  <!-- Onzichtbare video 'sleutel' met echte bron -->
-  <video id="fsVideo" playsinline muted preload="auto" src="videos/blank.mp4"></video>
-
   <!-- Slideshow -->
   <div id="stage" aria-hidden="false">
     <img id="img" alt="Portret" />
-    <button id="fs" aria-label="Volledig scherm" title="Volledig scherm" onclick="enterFullscreen()">
+    <button id="fs" aria-label="Volledig scherm" title="Volledig scherm">
       <!-- Fullscreen-icoon (SVG) -->
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M7 3H3v4h2V5h2V3zm14 0h-4v2h2v2h2V3zM5 17H3v4h4v-2H5v-2zm14 2h-2v2h4v-4h-2v2z"/>
@@ -62,7 +54,7 @@
   </div>
 
   <script>
-    // -- jouw foto's --
+    // -- jouw foto's (je zei: direct in /images/) --
     const images = [
       "images/p1.jpg",
       "images/p2.jpg",
@@ -70,63 +62,51 @@
     ];
 
     let i = 0;
-    const stage   = document.getElementById('stage');
-    const img     = document.getElementById('img');
-    const fsVideo = document.getElementById('fsVideo');
+    const stage = document.getElementById('stage');
+    const img   = document.getElementById('img');
+    const fsBtn = document.getElementById('fs');
 
     function showCurrent(){ img.src = images[i]; }
     function next(){ i = (i + 1) % images.length; showCurrent(); }
     function prev(){ i = (i - 1 + images.length) % images.length; showCurrent(); }
-
-    // init eerste foto
     showCurrent();
 
-    // foutmelding als pad niet klopt
     img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
 
-    // Fullscreen: eerst iOS video-route (YouTube-style), anders standaard Fullscreen API
+    // Fullscreen via de standaard API (werkt direct na 1 tap; iOS laat soms nog dunne chrome zien via Safari)
     async function enterFullscreen(){
-      // 1) iOS: echte video-fullscreen op verborgen video-element
-      if (fsVideo && typeof fsVideo.webkitEnterFullscreen === 'function') {
-        try {
-          // sommige iOS-versies willen een play() poging vooraf (mag muted/inline)
-          try { await fsVideo.play(); } catch(e) {}
-          fsVideo.webkitEnterFullscreen();
-          document.body.classList.add('fs');
-          return;
-        } catch (e) {
-          // doorvallen naar reguliere fullscreen
-        }
-      }
-
-      // 2) Fallback (Android/desktop/iOS zonder video-route)
       const req = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.msRequestFullscreen;
-      if (req) {
-        try { await req.call(stage); document.body.classList.add('fs'); return; }
-        catch(e) {}
-      }
-
-      // 3) Laatste duwtje voor iOS om balken in te klappen
-      window.scrollTo(0, 1);
+      try { if (req) await req.call(stage); } catch(e){}
+      document.body.classList.add('fs');
+      // kleine nudge om dynamische balken te laten inklappen
+      setTimeout(()=>window.scrollTo(0,1), 50);
     }
+    fsBtn.addEventListener('click', enterFullscreen);
 
-    // Interactie
+    // Tap/klik en toetsenbord
     img.addEventListener('click', next);
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowRight') next();
       if (e.key === 'ArrowLeft')  prev();
     });
 
-    // Swipe
-    let sx=0, sy=0, t0=0; const SW=40, TAP=10, TAPMS=600;
+    // Swipe met edge-guard tegen iOS back-gesture
+    let sx=0, sy=0, t0=0; const EDGE=24, SW=40, TAP=10, TAPMS=600;
     img.addEventListener('touchstart', e => {
       const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
+      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; } // negeer rand-swipes
     }, {passive:true});
     img.addEventListener('touchend', e => {
+      if (sx === 0 && sy === 0) return;
       const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-t0;
       if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); return; }
       if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
     }, {passive:true});
+
+    // Service worker registreren (voor Android install prompt + nette app-shell)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    }
   </script>
 </body>
 </html>
