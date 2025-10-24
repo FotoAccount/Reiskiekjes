@@ -37,7 +37,11 @@
 <body>
   <!-- Onzichtbare video 'sleutel' voor iOS-fullscreen -->
   <video id="fsVideo" playsinline muted></video>
-
+  
+<video id="fsVideo" playsinline muted preload="auto" src="videos/blank.mp4"
+  style="position:fixed; inset:0; width:1px; height:1px; opacity:0; pointer-events:none; background:#000;">
+</video>
+  
   <!-- Slideshow -->
   <div id="stage" aria-hidden="false">
     <img id="img" alt="Portret" />
@@ -75,22 +79,23 @@
 
     // Fullscreen: eerst iOS video-route (YouTube-style), anders standaard Fullscreen API
     async function enterFullscreen(){
-      // iOS-specifiek: echte video-fullscreen
-      if (fsVideo && typeof fsVideo.webkitEnterFullscreen === 'function') {
-        try {
-          fsVideo.webkitEnterFullscreen();
-          document.body.classList.add('fs');
-          return;
-        } catch (e) {
-          // val door naar reguliere fullscreen
-        }
-      }
-      // Fallback (Android/desktop/iOS zonder video-route)
-      const req = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.msRequestFullscreen;
-      if (req) {
-        try { await req.call(stage); document.body.classList.add('fs'); } catch {}
-      }
-    }
+  const fsVideo = document.getElementById('fsVideo');
+
+  if (fsVideo && typeof fsVideo.webkitEnterFullscreen === 'function') {
+    try {
+      try { await fsVideo.play().catch(()=>{}); } catch(e) {}
+      fsVideo.webkitEnterFullscreen();
+      document.body.classList.add('fs');
+      return;
+    } catch (e) {}
+  }
+
+  const stage = document.getElementById('stage');
+  const req = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.msRequestFullscreen;
+  if (req) {
+    try { await req.call(stage); document.body.classList.add('fs'); } catch {}
+  }
+}
 
     fsBtn.addEventListener('click', enterFullscreen);
 
