@@ -102,61 +102,55 @@
   </div>
 
   <script>
-    // Alle landscape-foto’s: L0.jpg t/m L44.jpg
-const images = Array.from({ length: 45 }, (_, n) => `images/L${n}.jpg`);
+// Default: voor elke foto lege caption (L0..L44)
+const meta = Array.from({ length: images.length }, () => ({ country: "", place: "" }));
 
-    // --- Per-foto metadata (zelfde volgorde en lengte als images) ---
-    const meta = [
-      { country: "",  place: "" },
-      { country: "New Zealand",  place: "Tongariro National Park" },
-      { country: "New Zealand",    place: "Mount John" },
-      { country: "Cambodia",  place: "Angkor Wat" },
-      { country: "Austria",     place: "Pitztaler Glacier" },
-      { country: "Australia",     place: "Whitehaven Beach" },
-      { country: "Malaysia",   place: "Jungle near Cameron Highlands" },
-      { country: "Australia",  place: "Noosa National Park" }
-      { country: "Greenland",  place: "LAX-AMS" }
-      { country: "Australia",  place: "Great Barrier Reef" }
-      { country: "Peru",  place: "LIM-AMS" }
-      { country: "France",  place: "Refuge du Roc" }
-      { country: "Italy",  place: "San Fruttuoso" }
-      { country: "United Arab Emirates",  place: "Abu Dhabi" }
-      { country: "Thailand",  place: "Loh Lana Bay" }
-      { country: "The Nethelands",  place: "Utrecht" }
-      { country: "Malaysia",  place: "Cameron Highlands" }
-      { country: "New Zealand",  place: "Mount Cook Glacier" }
-      { country: "New Zealand",  place: "Wellington" }
-      { country: "Austria",  place: "Ties - Pitztal" }
-      { country: "Australia",  place: "Zillie Falls" }
-      { country: "New Zealand",  place: "Queenstown" }
-      { country: "Australia",  place: "K'gari" }
-      { country: "Austria",  place: "Mittelbergferner Glacier Cave" }
-      { country: "United Arab Emirates",  place: "Rub' al Khali" }
-      { country: "Peru",  place: "Machu Picchu" }    
-      { country: "Italy",  place: "Florence" }    
-      { country: "United Arab Emirates",  place: "Dubai" }        
-      { country: "New Zealand",  place: "Kepler Track" }    
-      { country: "New Zealand",  place: "Roy's Peak" }        
-      { country: "United Arab Emirates",  place: "Khor Dubai Port" }      
-      { country: "Peru",  place: "Machu Picchu" }    
-      { country: "Thailand",  place: "Kao Sok" }    
-      { country: "Luxembourgh",  place: "Abandoned Mansion" }    
-      { country: "France",  place: "La Motte" }    
-      { country: "New Zealand",  place: "Roy's Peak" } 
-      { country: "Austria",  place: "Hinterer Brunnenkogel" }     
-      { country: "Austria",  place: "Pitztal - made by Alina" } 
-      { country: "Austria",  place: "Pitztal - Alex" }     
-      { country: "Australia",  place: "Millaa Millaa Falls" } 
-      { country: "New Zealand",  place: "Kaikoura" } 
-      { country: "New Zealand",  place: "Wellington-Picton" }     
-      { country: "Thailand",  place: "Nui Beach" }   
-      { country: "Australia",  place: "Tarzali" }   
-      { country: "Australia",  place: "Sydney" } 
-      { country: "Australia",  place: "K'gari" }
-
-    
-    ];
-    // ↑ Vul deze waardes met jouw echte land/plek per foto.
+// Vul alleen de entries waar je tekst voor wilt
+meta[1]  = { country: "New Zealand", place: "Tongariro National Park" };
+meta[2]  = { country: "New Zealand", place: "Mount John" };
+meta[3]  = { country: "Cambodia",   place: "Angkor Wat" };
+meta[4]  = { country: "Austria",    place: "Pitztaler Glacier" };
+meta[5]  = { country: "Australia",  place: "Whitehaven Beach" };
+meta[6]  = { country: "Malaysia",   place: "Jungle near Cameron Highlands" };
+meta[7]  = { country: "Australia",  place: "Noosa National Park" };
+meta[8]  = { country: "Greenland",  place: "LAX-AMS" };
+meta[9]  = { country: "Australia",  place: "Great Barrier Reef" };
+meta[10] = { country: "Peru",       place: "LIM-AMS" };
+meta[11] = { country: "France",     place: "Refuge du Roc" };
+meta[12] = { country: "Italy",      place: "San Fruttuoso" };
+meta[13] = { country: "United Arab Emirates", place: "Abu Dhabi" };
+meta[14] = { country: "Thailand",   place: "Loh Lana Bay" };
+meta[15] = { country: "The Netherlands", place: "Utrecht" };
+meta[16] = { country: "Malaysia",   place: "Cameron Highlands" };
+meta[17] = { country: "New Zealand",place: "Mount Cook Glacier" };
+meta[18] = { country: "New Zealand",place: "Wellington" };
+meta[19] = { country: "Austria",    place: "Ties - Pitztal" };
+meta[20] = { country: "Australia",  place: "Zillie Falls" };
+meta[21] = { country: "New Zealand",place: "Queenstown" };
+meta[22] = { country: "Australia",  place: "K'gari" };
+meta[23] = { country: "Austria",    place: "Mittelbergferner Glacier Cave" };
+meta[24] = { country: "United Arab Emirates", place: "Rub' al Khali" };
+meta[25] = { country: "Peru",       place: "Machu Picchu" };
+meta[26] = { country: "Italy",      place: "Florence" };
+meta[27] = { country: "United Arab Emirates", place: "Dubai" };
+meta[28] = { country: "New Zealand",place: "Kepler Track" };
+meta[29] = { country: "New Zealand",place: "Roy's Peak" };
+meta[30] = { country: "United Arab Emirates", place: "Khor Dubai Port" };
+meta[31] = { country: "Peru",       place: "Machu Picchu" };
+meta[32] = { country: "Thailand",   place: "Khao Sok" };
+meta[33] = { country: "Luxembourg", place: "Abandoned Mansion" };
+meta[34] = { country: "France",     place: "La Motte" };
+meta[35] = { country: "New Zealand",place: "Roy's Peak" };
+meta[36] = { country: "Austria",    place: "Hinterer Brunnenkogel" };
+meta[37] = { country: "Austria",    place: "Pitztal - made by Alina" };
+meta[38] = { country: "Austria",    place: "Pitztal - Alex" };
+meta[39] = { country: "Australia",  place: "Millaa Millaa Falls" };
+meta[40] = { country: "New Zealand",place: "Kaikoura" };
+meta[41] = { country: "New Zealand",place: "Wellington-Picton" };
+meta[42] = { country: "Thailand",   place: "Nui Beach" };
+meta[43] = { country: "Australia",  place: "Tarzali" };
+meta[44] = { country: "Australia",  place: "Sydney" };
+// L0 (index 0) blijft leeg → geen caption op je intro-slide
 
     let i = 0;
     const stage    = document.getElementById("stage");
