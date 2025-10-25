@@ -48,7 +48,6 @@
       object-position: center;
       background: #000;
       transition: transform var(--anim-ms) ease;
-      /* geen box-shadow hier in rust */
     }
     #imgNext { transform: translateX(100%); }
 
@@ -58,35 +57,34 @@
       box-shadow: 0 0 0 var(--divider) #000;
     }
 
-    /* Caption links-onder (onzichtbaar tot swipe omhoog) */
- /* Caption links-onder, strak witte tekst */
-#caption {
-  position: absolute;
-  left: 5vw;
-  bottom: 3vh;
-  z-index: 5;
-  color: #fff;
-  text-shadow: 0 0 6px rgba(0,0,0,0.4);   /* subtiele leesbaarheid op lichte beelden */
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity .35s ease, transform .35s ease;
-}
-#caption.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-#caption .country {
-  font-size: clamp(16px, 2.8vw, 24px);
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  margin-bottom: 2px;
-}
-#caption .place {
-  font-size: clamp(12px, 2vw, 18px);
-  font-weight: 400;
-  opacity: 0.95;
-}
+    /* Caption links-onder, strak witte tekst */
+    #caption {
+      position: absolute;
+      left: 5vw;
+      bottom: 3vh;
+      z-index: 5;
+      color: #fff;
+      text-shadow: 0 0 6px rgba(0,0,0,0.4);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .35s ease, transform .35s ease;
+    }
+    #caption.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #caption .country {
+      font-size: clamp(16px, 2.8vw, 24px);
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      margin-bottom: 2px;
+    }
+    #caption .place {
+      font-size: clamp(12px, 2vw, 18px);
+      font-weight: 400;
+      opacity: 0.95;
+    }
   </style>
 </head>
 <body>
@@ -102,119 +100,129 @@
   </div>
 
   <script>
-// Default: voor elke foto lege caption (L0..L44)
-const meta = Array.from({ length: images.length }, () => ({ country: "", place: "" }));
+    // Alle landscape-foto’s: L0.jpg t/m L44.jpg
+    const images = Array.from({ length: 45 }, (_, n) => `images/L${n}.jpg`);
 
-// Vul alleen de entries waar je tekst voor wilt
-meta[1]  = { country: "New Zealand", place: "Tongariro National Park" };
-meta[2]  = { country: "New Zealand", place: "Mount John" };
-meta[3]  = { country: "Cambodia",   place: "Angkor Wat" };
-meta[4]  = { country: "Austria",    place: "Pitztaler Glacier" };
-meta[5]  = { country: "Australia",  place: "Whitehaven Beach" };
-meta[6]  = { country: "Malaysia",   place: "Jungle near Cameron Highlands" };
-meta[7]  = { country: "Australia",  place: "Noosa National Park" };
-meta[8]  = { country: "Greenland",  place: "LAX-AMS" };
-meta[9]  = { country: "Australia",  place: "Great Barrier Reef" };
-meta[10] = { country: "Peru",       place: "LIM-AMS" };
-meta[11] = { country: "France",     place: "Refuge du Roc" };
-meta[12] = { country: "Italy",      place: "San Fruttuoso" };
-meta[13] = { country: "United Arab Emirates", place: "Abu Dhabi" };
-meta[14] = { country: "Thailand",   place: "Loh Lana Bay" };
-meta[15] = { country: "The Netherlands", place: "Utrecht" };
-meta[16] = { country: "Malaysia",   place: "Cameron Highlands" };
-meta[17] = { country: "New Zealand",place: "Mount Cook Glacier" };
-meta[18] = { country: "New Zealand",place: "Wellington" };
-meta[19] = { country: "Austria",    place: "Ties - Pitztal" };
-meta[20] = { country: "Australia",  place: "Zillie Falls" };
-meta[21] = { country: "New Zealand",place: "Queenstown" };
-meta[22] = { country: "Australia",  place: "K'gari" };
-meta[23] = { country: "Austria",    place: "Mittelbergferner Glacier Cave" };
-meta[24] = { country: "United Arab Emirates", place: "Rub' al Khali" };
-meta[25] = { country: "Peru",       place: "Machu Picchu" };
-meta[26] = { country: "Italy",      place: "Florence" };
-meta[27] = { country: "United Arab Emirates", place: "Dubai" };
-meta[28] = { country: "New Zealand",place: "Kepler Track" };
-meta[29] = { country: "New Zealand",place: "Roy's Peak" };
-meta[30] = { country: "United Arab Emirates", place: "Khor Dubai Port" };
-meta[31] = { country: "Peru",       place: "Machu Picchu" };
-meta[32] = { country: "Thailand",   place: "Khao Sok" };
-meta[33] = { country: "Luxembourg", place: "Abandoned Mansion" };
-meta[34] = { country: "France",     place: "La Motte" };
-meta[35] = { country: "New Zealand",place: "Roy's Peak" };
-meta[36] = { country: "Austria",    place: "Hinterer Brunnenkogel" };
-meta[37] = { country: "Austria",    place: "Pitztal - made by Alina" };
-meta[38] = { country: "Austria",    place: "Pitztal - Alex" };
-meta[39] = { country: "Australia",  place: "Millaa Millaa Falls" };
-meta[40] = { country: "New Zealand",place: "Kaikoura" };
-meta[41] = { country: "New Zealand",place: "Wellington-Picton" };
-meta[42] = { country: "Thailand",   place: "Nui Beach" };
-meta[43] = { country: "Australia",  place: "Tarzali" };
-meta[44] = { country: "Australia",  place: "Sydney" };
-// L0 (index 0) blijft leeg → geen caption op je intro-slide
+    // Default: lege captions
+    const meta = Array.from({ length: images.length }, () => ({ country: "", place: "" }));
 
+    // Alleen de foto's waar je tekst bij wilt:
+    meta[1]  = { country: "New Zealand", place: "Tongariro National Park" };
+    meta[2]  = { country: "New Zealand", place: "Mount John" };
+    meta[3]  = { country: "Cambodia", place: "Angkor Wat" };
+    meta[4]  = { country: "Austria", place: "Pitztaler Glacier" };
+    meta[5]  = { country: "Australia", place: "Whitehaven Beach" };
+    meta[6]  = { country: "Malaysia", place: "Jungle near Cameron Highlands" };
+    meta[7]  = { country: "Australia", place: "Noosa National Park" };
+    meta[8]  = { country: "Greenland", place: "LAX-AMS" };
+    meta[9]  = { country: "Australia", place: "Great Barrier Reef" };
+    meta[10] = { country: "Peru", place: "LIM-AMS" };
+    meta[11] = { country: "France", place: "Refuge du Roc" };
+    meta[12] = { country: "Italy", place: "San Fruttuoso" };
+    meta[13] = { country: "United Arab Emirates", place: "Abu Dhabi" };
+    meta[14] = { country: "Thailand", place: "Loh Lana Bay" };
+    meta[15] = { country: "The Netherlands", place: "Utrecht" };
+    meta[16] = { country: "Malaysia", place: "Cameron Highlands" };
+    meta[17] = { country: "New Zealand", place: "Mount Cook Glacier" };
+    meta[18] = { country: "New Zealand", place: "Wellington" };
+    meta[19] = { country: "Austria", place: "Ties - Pitztal" };
+    meta[20] = { country: "Australia", place: "Zillie Falls" };
+    meta[21] = { country: "New Zealand", place: "Queenstown" };
+    meta[22] = { country: "Australia", place: "K'gari" };
+    meta[23] = { country: "Austria", place: "Mittelbergferner Glacier Cave" };
+    meta[24] = { country: "United Arab Emirates", place: "Rub' al Khali" };
+    meta[25] = { country: "Peru", place: "Machu Picchu" };
+    meta[26] = { country: "Italy", place: "Florence" };
+    meta[27] = { country: "United Arab Emirates", place: "Dubai" };
+    meta[28] = { country: "New Zealand", place: "Kepler Track" };
+    meta[29] = { country: "New Zealand", place: "Roy's Peak" };
+    meta[30] = { country: "United Arab Emirates", place: "Khor Dubai Port" };
+    meta[31] = { country: "Peru", place: "Machu Picchu" };
+    meta[32] = { country: "Thailand", place: "Khao Sok" };
+    meta[33] = { country: "Luxembourg", place: "Abandoned Mansion" };
+    meta[34] = { country: "France", place: "La Motte" };
+    meta[35] = { country: "New Zealand", place: "Roy's Peak" };
+    meta[36] = { country: "Austria", place: "Hinterer Brunnenkogel" };
+    meta[37] = { country: "Austria", place: "Pitztal - made by Alina" };
+    meta[38] = { country: "Austria", place: "Pitztal - Alex" };
+    meta[39] = { country: "Australia", place: "Millaa Millaa Falls" };
+    meta[40] = { country: "New Zealand", place: "Kaikoura" };
+    meta[41] = { country: "New Zealand", place: "Wellington-Picton" };
+    meta[42] = { country: "Thailand", place: "Nui Beach" };
+    meta[43] = { country: "Australia", place: "Tarzali" };
+    meta[44] = { country: "Australia", place: "Sydney" };
+
+    // Setup
     let i = 0;
-    const stage    = document.getElementById("stage");
-    const img      = document.getElementById("img");
-    const imgNext  = document.getElementById("imgNext");
-    const caption  = document.getElementById('caption');
+    const stage = document.getElementById("stage");
+    const img = document.getElementById("img");
+    const imgNext = document.getElementById("imgNext");
+    const caption = document.getElementById('caption');
     const capCountry = caption.querySelector('.country');
-    const capPlace   = caption.querySelector('.place');
-
+    const capPlace = caption.querySelector('.place');
     let captionVisible = false;
 
     function setCaption(idx) {
       const m = meta[idx] || { country: "", place: "" };
       capCountry.textContent = m.country || "";
-      capPlace.textContent   = m.place   || "";
+      capPlace.textContent = m.place || "";
     }
-    function showCaption() { captionVisible = true; caption.classList.add('show'); setCaption(i); }
-    function hideCaption() { captionVisible = false; caption.classList.remove('show'); }
+    function showCaption() {
+      const m = meta[i] || { country: "", place: "" };
+      if (!m.country && !m.place) {
+        captionVisible = false;
+        caption.classList.remove('show');
+        return;
+      }
+      captionVisible = true;
+      setCaption(i);
+      caption.classList.add('show');
+    }
+    function hideCaption() {
+      captionVisible = false;
+      caption.classList.remove('show');
+    }
 
     // Eerste foto tonen
     img.src = images[i];
-
-    const DURATION = 700; // ms (matcht CSS var --anim-ms)
+    const DURATION = 700;
     let animating = false;
 
     function slideTo(nextIndex, direction) {
       if (animating) return;
       animating = true;
-      stage.classList.add('anim'); // zwarte scheidslijn AAN tijdens animatie
+      stage.classList.add('anim');
 
       const nextSrc = images[nextIndex];
       const preImg = new Image();
       preImg.src = nextSrc;
 
-      // Wacht tot de nieuwe foto geladen is → geen "oude foto" glitch
       preImg.onload = () => {
         imgNext.src = nextSrc;
         imgNext.style.transition = "none";
         img.style.transition = "none";
         imgNext.style.transform = `translateX(${direction * 100}%)`;
 
-        // Start animatie
         requestAnimationFrame(() => {
           imgNext.style.transition = `transform ${DURATION}ms ease`;
-          img.style.transition     = `transform ${DURATION}ms ease`;
-          img.style.transform      = `translateX(${-direction * 100}%)`;
-          imgNext.style.transform  = "translateX(0)";
+          img.style.transition = `transform ${DURATION}ms ease`;
+          img.style.transform = `translateX(${-direction * 100}%)`;
+          imgNext.style.transform = "translateX(0)";
         });
 
-        // Na animatie: lagen resetten
         setTimeout(() => {
           img.src = nextSrc;
           img.style.transition = "none";
-          img.style.transform  = "translateX(0)";
+          img.style.transform = "translateX(0)";
           imgNext.style.transition = "none";
-          imgNext.style.transform  = "translateX(100%)";
+          imgNext.style.transform = "translateX(100%)";
           i = nextIndex;
           animating = false;
-          stage.classList.remove('anim'); // scheidslijn UIT in rust
+          stage.classList.remove('anim');
 
-          // Caption updaten als die zichtbaar is
           if (captionVisible) setCaption(i);
+          if (!meta[i].country && !meta[i].place) hideCaption();
 
-          // Preload alvast de volgende foto
           const preloadNext = new Image();
           preloadNext.src = images[(nextIndex + 1) % images.length];
         }, DURATION);
@@ -230,13 +238,13 @@ meta[44] = { country: "Australia",  place: "Sydney" };
     function next() { slideTo((i + 1) % images.length, 1); }
     function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
 
-    // Swipe-detectie (tap = volgende) + edge-guard + vertical for caption
+    // Swipe controls
     let sx=0, sy=0, t0=0;
     const EDGE=24, SW=40, TAP=10, TAPMS=600, SWIPE_Y=40;
 
     stage.addEventListener('touchstart', e=>{
       const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
-      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; } // negeer rand-swipes (iOS back-gesture)
+      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; }
     }, {passive:true});
 
     stage.addEventListener('touchend', e=>{
@@ -244,34 +252,29 @@ meta[44] = { country: "Australia",  place: "Sydney" };
       const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-t0;
 
       const isHorizontal = Math.abs(dx) > Math.abs(dy);
-      const isVertical   = !isHorizontal;
+      const isVertical = !isHorizontal;
 
-      // Horizontaal: wissel foto
       if (isHorizontal && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); return; }
-
-      // Tik = volgende
       if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) { next(); return; }
 
-      // Verticaal: caption tonen/verbergen
       if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
         if (dy < 0) showCaption(); else hideCaption();
       }
     }, {passive:true});
 
-    // Muis/keyboard (voor desktop)
+    // Desktop controls
     stage.addEventListener('click', next);
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft')  prev();
+      if (e.key === 'ArrowLeft') prev();
       if (e.key.toLowerCase?.() === 'i') { captionVisible ? hideCaption() : showCaption(); }
     });
 
-    // Simpele foutmelding bij verkeerd pad
     img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
 
-    // PWA service worker registreren
+    // Service worker voor PWA
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(()=>{});
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
     }
 
     // iOS rubber-band scroll blokkeren
