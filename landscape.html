@@ -48,6 +48,7 @@
       object-position: center;
       background: #000;
       transition: transform var(--anim-ms) ease;
+      will-change: transform;      /* ook smooth voor zoom/pan */
     }
     #imgNext { transform: translateX(100%); }
 
@@ -70,20 +71,19 @@
       transform: translateY(12px);
       transition: opacity .35s ease, transform .35s ease;
     }
-    #caption.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    #caption .country {
+    #caption.show { opacity: 1; transform: translateY(0); }
+
+    /* Let op: plaats GROTER boven, land kleiner onder */
+    #caption .place {
       font-size: clamp(16px, 2.8vw, 24px);
       font-weight: 600;
       letter-spacing: 0.2px;
       margin-bottom: 2px;
     }
-    #caption .place {
+    #caption .country {
       font-size: clamp(12px, 2vw, 18px);
       font-weight: 400;
-      opacity: 0.95;
+      opacity: 0.9;
     }
   </style>
 </head>
@@ -94,19 +94,23 @@
 
     <!-- Caption (onder-links) -->
     <div id="caption" aria-live="polite">
-      <div class="country"></div>
       <div class="place"></div>
+      <div class="country"></div>
     </div>
   </div>
 
   <script>
+    /* =========================
+       DATA
+    ==========================*/
+
     // Alle landscape-foto’s: L0.jpg t/m L44.jpg
     const images = Array.from({ length: 45 }, (_, n) => `images/L${n}.jpg`);
 
-    // Default: lege captions
+    // Default: lege captions voor alle foto's
     const meta = Array.from({ length: images.length }, () => ({ country: "", place: "" }));
 
-    // Alleen de foto's waar je tekst bij wilt:
+    // Alleen de foto's waar je tekst bij wilt (voorbeelden; pas aan)
     meta[1]  = { country: "New Zealand", place: "Tongariro National Park" };
     meta[2]  = { country: "New Zealand", place: "Mount John" };
     meta[3]  = { country: "Cambodia", place: "Angkor Wat" };
@@ -152,42 +156,92 @@
     meta[43] = { country: "Australia", place: "Tarzali" };
     meta[44] = { country: "Australia", place: "Sydney" };
 
-    // Setup
+    /* =========================
+       ELEMENTEN & STATE
+    ==========================*/
     let i = 0;
-    const stage = document.getElementById("stage");
-    const img = document.getElementById("img");
-    const imgNext = document.getElementById("imgNext");
-    const caption = document.getElementById('caption');
-    const capCountry = caption.querySelector('.country');
-    const capPlace = caption.querySelector('.place');
+    const stage    = document.getElementById("stage");
+    const img      = document.getElementById("img");
+    const imgNext  = document.getElementById("imgNext");
+    const caption  = document.getElementById("caption");
+    const capPlace   = caption.querySelector(".place");
+    const capCountry = caption.querySelector(".country");
+
+    // Caption zichtbaarheid
     let captionVisible = false;
 
     function setCaption(idx) {
       const m = meta[idx] || { country: "", place: "" };
+      capPlace.textContent   = m.place   || "";
       capCountry.textContent = m.country || "";
-      capPlace.textContent = m.place || "";
     }
     function showCaption() {
       const m = meta[i] || { country: "", place: "" };
       if (!m.country && !m.place) {
         captionVisible = false;
-        caption.classList.remove('show');
+        caption.classList.remove("show");
         return;
       }
       captionVisible = true;
       setCaption(i);
-      caption.classList.add('show');
+      caption.classList.add("show");
     }
     function hideCaption() {
       captionVisible = false;
-      caption.classList.remove('show');
+      caption.classList.remove("show");
     }
 
     // Eerste foto tonen
     img.src = images[i];
-    const DURATION = 700;
+
+    // Slide animatie
+    const DURATION = 700; // ms
     let animating = false;
 
+    /* =========================
+       ZOOM & PAN (double-tap)
+    ==========================*/
+    let zoom = 1;           // 1 = geen zoom
+    let panX = 0, panY = 0; // panning in px
+    let zoomMode = false;   // true = zoom actief → foto-swipe uit
+
+    function applyZoom() {
+      img.style.transition = 'transform 80ms linear';
+      img.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    }
+    function resetZoomInstant() {
+      zoom = 1; panX = 0; panY = 0; zoomMode = false;
+      img.style.transition = 'none';
+      img.style.transform = 'translate(0,0) scale(1)';
+    }
+
+    let dragStartX = 0, dragStartY = 0, basePanX = 0, basePanY = 0;
+
+    stage.addEventListener('touchstart', (e) => {
+      if (!zoomMode) return;
+      const t = e.changedTouches[0];
+      dragStartX = t.clientX;
+      dragStartY = t.clientY;
+      basePanX = panX;
+      basePanY = panY;
+    }, {passive:true});
+
+    stage.addEventListener('touchmove', (e) => {
+      if (!zoomMode) return;
+      e.preventDefault();
+      const t = e.changedTouches[0];
+      const dx = t.clientX - dragStartX;
+      const dy = t.clientY - dragStartY;
+      panX = basePanX + dx;
+      panY = basePanY + dy;
+      applyZoom();
+    }, {passive:false});
+
+    // Double-tap detectie geïntegreerd in touchend (onder)
+
+    /* =========================
+       SLIDE LOGICA
+    ==========================*/
     function slideTo(nextIndex, direction) {
       if (animating) return;
       animating = true;
@@ -205,24 +259,26 @@
 
         requestAnimationFrame(() => {
           imgNext.style.transition = `transform ${DURATION}ms ease`;
-          img.style.transition = `transform ${DURATION}ms ease`;
-          img.style.transform = `translateX(${-direction * 100}%)`;
-          imgNext.style.transform = "translateX(0)";
+          img.style.transition     = `transform ${DURATION}ms ease`;
+          img.style.transform      = `translateX(${-direction * 100}%)`;
+          imgNext.style.transform  = "translateX(0)";
         });
 
         setTimeout(() => {
           img.src = nextSrc;
           img.style.transition = "none";
-          img.style.transform = "translateX(0)";
+          img.style.transform  = "translateX(0)";
           imgNext.style.transition = "none";
-          imgNext.style.transform = "translateX(100%)";
+          imgNext.style.transform  = "translateX(100%)";
           i = nextIndex;
+
+          // Na foto-wissel: anim eindigen, divider uit, caption verbergen, zoom resetten
           animating = false;
           stage.classList.remove('anim');
+          hideCaption();
+          resetZoomInstant();
 
-          if (captionVisible) setCaption(i);
-          if (!meta[i].country && !meta[i].place) hideCaption();
-
+          // Preload volgende foto
           const preloadNext = new Image();
           preloadNext.src = images[(nextIndex + 1) % images.length];
         }, DURATION);
@@ -238,25 +294,51 @@
     function next() { slideTo((i + 1) % images.length, 1); }
     function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
 
-    // Swipe controls
-    let sx=0, sy=0, t0=0;
+    /* =========================
+       GESTURES
+    ==========================*/
+    let sx=0, sy=0, t0=0, lastTap=0;
     const EDGE=24, SW=40, TAP=10, TAPMS=600, SWIPE_Y=40;
 
     stage.addEventListener('touchstart', e=>{
       const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
-      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; }
+      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; } // negeer iOS back-gesture zones
     }, {passive:true});
 
     stage.addEventListener('touchend', e=>{
-      if (sx===0 && sy===0) return;
-      const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-t0;
+      // Double-tap toggle zoom
+      const now = Date.now();
+      const t=e.changedTouches[0];
+      const dx=t.clientX-sx, dy=t.clientY-sy, dt=now - t0;
+
+      if (now - lastTap < 300 && Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+        if (!zoomMode) {
+          zoomMode = true;
+          zoom = 2.5;           // zoomfactor
+          panX = 0; panY = 0;   // simpel centrum (we kunnen later focussen op tap-positie)
+          applyZoom();
+          hideCaption();
+        } else {
+          resetZoomInstant();
+        }
+        lastTap = 0; // reset
+        return;
+      }
+      lastTap = now;
+
+      // Als zoom actief is: geen foto-swipe / caption-toggles
+      if (zoomMode) return;
 
       const isHorizontal = Math.abs(dx) > Math.abs(dy);
-      const isVertical = !isHorizontal;
+      const isVertical   = !isHorizontal;
 
+      // Horizontaal: wissel foto
       if (isHorizontal && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); return; }
+
+      // Tik = volgende
       if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) { next(); return; }
 
+      // Verticaal: caption tonen/verbergen
       if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
         if (dy < 0) showCaption(); else hideCaption();
       }
@@ -266,13 +348,14 @@
     stage.addEventListener('click', next);
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft') prev();
+      if (e.key === 'ArrowLeft')  prev();
       if (e.key.toLowerCase?.() === 'i') { captionVisible ? hideCaption() : showCaption(); }
+      if (e.key.toLowerCase?.() === 'z') { zoomMode ? resetZoomInstant() : (zoomMode=true, zoom=2.5, applyZoom(), hideCaption()); }
     });
 
     img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
 
-    // Service worker voor PWA
+    // Service worker voor PWA (relatief pad!)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(()=>{});
     }
