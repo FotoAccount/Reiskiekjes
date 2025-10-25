@@ -102,17 +102,8 @@
   </div>
 
   <script>
-    // --- Jouw landschapsfoto’s (pad en namen exact) ---
-    const images = [
-      "images/L0.jpg",
-      "images/L1.jpg",
-      "images/L2.jpg",
-      "images/L3.jpg",
-      "images/L4.jpg",
-      "images/L5.jpg",
-      "images/L6.jpg",
-      "images/L7.jpg"
-    ];
+    // Alle landscape-foto’s: L0.jpg t/m L44.jpg
+const images = Array.from({ length: 45 }, (_, n) => `images/L${n}.jpg`);
 
     // --- Per-foto metadata (zelfde volgorde en lengte als images) ---
     const meta = [
@@ -122,8 +113,48 @@
       { country: "Cambodia",  place: "Angkor Wat" },
       { country: "Austria",     place: "Pitztaler Glacier" },
       { country: "Australia",     place: "Whitehaven Beach" },
-      { country: "Malaysia",   place: "Jungle" },
-      { country: "Australia",  place: "Noose National Park" }
+      { country: "Malaysia",   place: "Jungle near Cameron Highlands" },
+      { country: "Australia",  place: "Noosa National Park" }
+      { country: "Greenland",  place: "LAX-AMS" }
+      { country: "Australia",  place: "Great Barrier Reef" }
+      { country: "Peru",  place: "LIM-AMS" }
+      { country: "France",  place: "Refuge du Roc" }
+      { country: "Italy",  place: "San Fruttuoso" }
+      { country: "United Arab Emirates",  place: "Abu Dhabi" }
+      { country: "Thailand",  place: "Loh Lana Bay" }
+      { country: "The Nethelands",  place: "Utrecht" }
+      { country: "Malaysia",  place: "Cameron Highlands" }
+      { country: "New Zealand",  place: "Mount Cook Glacier" }
+      { country: "New Zealand",  place: "Wellington" }
+      { country: "Austria",  place: "Ties - Pitztal" }
+      { country: "Australia",  place: "Zillie Falls" }
+      { country: "New Zealand",  place: "Queenstown" }
+      { country: "Australia",  place: "K'gari" }
+      { country: "Austria",  place: "Mittelbergferner Glacier Cave" }
+      { country: "United Arab Emirates",  place: "Rub' al Khali" }
+      { country: "Peru",  place: "Machu Picchu" }    
+      { country: "Italy",  place: "Florence" }    
+      { country: "United Arab Emirates",  place: "Dubai" }        
+      { country: "New Zealand",  place: "Kepler Track" }    
+      { country: "New Zealand",  place: "Roy's Peak" }        
+      { country: "United Arab Emirates",  place: "Khor Dubai Port" }      
+      { country: "Peru",  place: "Machu Picchu" }    
+      { country: "Thailand",  place: "Kao Sok" }    
+      { country: "Luxembourgh",  place: "Abandoned Mansion" }    
+      { country: "France",  place: "La Motte" }    
+      { country: "New Zealand",  place: "Roy's Peak" } 
+      { country: "Austria",  place: "Hinterer Brunnenkogel" }     
+      { country: "Austria",  place: "Pitztal - made by Alina" } 
+      { country: "Austria",  place: "Pitztal - Alex" }     
+      { country: "Australia",  place: "Millaa Millaa Falls" } 
+      { country: "New Zealand",  place: "Kaikoura" } 
+      { country: "New Zealand",  place: "Wellington-Picton" }     
+      { country: "Thailand",  place: "Nui Beach" }   
+      { country: "Australia",  place: "Tarzali" }   
+      { country: "Australia",  place: "Sydney" } 
+      { country: "Australia",  place: "K'gari" }
+
+    
     ];
     // ↑ Vul deze waardes met jouw echte land/plek per foto.
 
