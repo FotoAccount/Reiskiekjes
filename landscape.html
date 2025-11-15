@@ -12,8 +12,8 @@
 
   <style>
     :root {
-      --divider: 30px;
-      --anim-ms: 700ms;
+      --divider: 30px;      /* zwarte scheidslijn tijdens animatie */
+      --anim-ms: 700ms;     /* duur van de slide animatie */
     }
 
     html, body {
@@ -99,7 +99,7 @@
     // 46 foto's: L0 t/m L45
     const images = Array.from({ length: 46 }, (_, n) => `images/L${n}.jpg`);
 
-    // Metadata
+    // Metadata (0–45, aansluitend)
     const meta = Array.from({ length: images.length }, () => ({ country: "", place: "" }));
 
     meta[1]  = { country: "New Zealand", place: "Tongariro National Park" };
@@ -156,6 +156,7 @@
     const capPlace = caption.querySelector(".place");
     const capCountry = caption.querySelector(".country");
 
+    /* --------- Caption helpers ---------- */
     function setCaption(idx) {
       const m = meta[idx] || { country: "", place: "" };
       capPlace.textContent = m.place || "";
@@ -173,7 +174,40 @@
       caption.classList.remove("show");
     }
 
+    /* --------- Zoom state (double-tap) ---------- */
+    let zoom = 1;
+    let panX = 0, panY = 0;
+    let zoomActive = false;
+    let panStartX = 0, panStartY = 0;
+    let basePanX = 0, basePanY = 0;
+
+    const ZOOM_FACTOR = 2.5;
+
+    function applyZoom() {
+      // simpele clamp, zodat je niet eindeloos buiten beeld kan slepen
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const maxX = (zoom - 1) * w * 0.5;
+      const maxY = (zoom - 1) * h * 0.5;
+      panX = Math.max(-maxX, Math.min(maxX, panX));
+      panY = Math.max(-maxY, Math.min(maxY, panY));
+
+      img.style.transition = 'transform 80ms linear';
+      img.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    }
+
+    function resetZoom() {
+      zoom = 1;
+      panX = 0;
+      panY = 0;
+      zoomActive = false;
+      img.style.transition = 'none';
+      img.style.transform = 'translate(0,0) scale(1)';
+    }
+
+    /* --------- Eerste foto ---------- */
     img.src = images[i];
+
     const DURATION = 700;
     let animating = false;
 
@@ -209,49 +243,138 @@
           animating = false;
           stage.classList.remove("anim");
           hideCaption();
+          resetZoom();
 
           const preloadNext = new Image();
           preloadNext.src = images[(nextIndex + 1) % images.length];
         }, DURATION);
+      };
+
+      preImg.onerror = () => {
+        console.warn("Kon afbeelding niet laden:", nextSrc);
+        animating = false;
+        stage.classList.remove("anim");
       };
     }
 
     function next() { slideTo((i + 1) % images.length, 1); }
     function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
 
+    /* --------- Gesture handling ---------- */
     let sx = 0, sy = 0, t0 = 0;
+    let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
+
     const EDGE = 24, SW = 40, TAP = 10, TAPMS = 600, SWIPE_Y = 40;
 
+    // touchstart: swipe-start óf pan-start (als ingezoomd)
     stage.addEventListener("touchstart", e => {
-      const t = e.changedTouches[0];
-      sx = t.clientX; sy = t.clientY; t0 = Date.now();
-      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; }
+      const t = e.touches[0];
+
+      if (zoomActive) {
+        // pan door foto
+        panStartX = t.clientX;
+        panStartY = t.clientY;
+        basePanX = panX;
+        basePanY = panY;
+      } else {
+        sx = t.clientX;
+        sy = t.clientY;
+        t0 = Date.now();
+        if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; }
+      }
     }, { passive: true });
 
+    // touchmove: alleen pannen als ingezoomd
+    stage.addEventListener("touchmove", e => {
+      if (!zoomActive) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      const dx = t.clientX - panStartX;
+      const dy = t.clientY - panStartY;
+      panX = basePanX + dx;
+      panY = basePanY + dy;
+      applyZoom();
+    }, { passive: false });
+
+    // touchend: double-tap / zoom / swipe / caption
     stage.addEventListener("touchend", e => {
       const t = e.changedTouches[0];
-      const dx = t.clientX - sx, dy = t.clientY - sy, dt = Date.now() - t0;
+      const now = Date.now();
+
+      const dxTap = t.clientX - lastTapX;
+      const dyTap = t.clientY - lastTapY;
+      const dtTap = now - lastTapTime;
+
+      // Double-tap detectie (klein gebied + korte tijd)
+      const doubleTap = dtTap < 300 && Math.abs(dxTap) < 20 && Math.abs(dyTap) < 20;
+
+      if (doubleTap) {
+        // toggle zoom
+        if (!zoomActive) {
+          zoomActive = true;
+          zoom = ZOOM_FACTOR;
+          panX = 0;
+          panY = 0;
+          hideCaption();
+          applyZoom();
+        } else {
+          resetZoom();
+        }
+        lastTapTime = 0;
+        return; // geen swipe/tap logica daarna
+      } else {
+        lastTapTime = now;
+        lastTapX = t.clientX;
+        lastTapY = t.clientY;
+      }
+
+      // Als ingezoomd: verder niks (geen foto-wissel of caption)
+      if (zoomActive) return;
+
+      const dx = t.clientX - sx;
+      const dy = t.clientY - sy;
+      const dt = now - t0;
       const isHorizontal = Math.abs(dx) > Math.abs(dy);
       const isVertical = !isHorizontal;
 
-      if (isHorizontal && Math.abs(dx) > SW && dt < 1000) { dx < 0 ? next() : prev(); return; }
-      if (Math.abs(dx) < TAP && Math.abs(dy) < TAP && dt < TAPMS) { next(); return; }
+      if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
+        dx < 0 ? next() : prev();
+        return;
+      }
+
+      if (Math.abs(dx) < TAP && Math.abs(dy) < TAP && dt < TAPMS) {
+        next();
+        return;
+      }
+
       if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
         if (dy < 0) showCaption(); else hideCaption();
       }
     }, { passive: true });
 
-    stage.addEventListener("click", next);
+    // Desktop: klik = volgende, pijltjes links/rechts, 'i' = caption toggle
+    stage.addEventListener("click", () => {
+      if (!zoomActive) next();
+    });
+
     document.addEventListener("keydown", e => {
+      if (zoomActive) {
+        if (e.key.toLowerCase?.() === "z") resetZoom();
+        return;
+      }
       if (e.key === "ArrowRight") next();
       if (e.key === "ArrowLeft") prev();
-      if (e.key.toLowerCase?.() === "i") caption.classList.toggle("show");
+      if (e.key.toLowerCase?.() === "i") {
+        if (caption.classList.contains("show")) hideCaption();
+        else showCaption();
+      }
     });
 
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("./sw.js").catch(() => {});
     }
 
+    // Geen rubber-band scroll op iOS
     document.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
   </script>
 </body>
