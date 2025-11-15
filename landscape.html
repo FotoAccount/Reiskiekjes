@@ -55,6 +55,7 @@
       box-shadow: 0 0 0 var(--divider) #000;
     }
 
+    /* Caption onder-links */
     #caption {
       position: absolute;
       left: 5vw;
@@ -82,6 +83,53 @@
       font-weight: 400;
       opacity: 0.9;
     }
+
+    /* Thumbnail-overlay bovenin */
+    #thumbOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 22vh;
+      background: rgba(0,0,0,0.69);
+      backdrop-filter: blur(6px);
+      transform: translateY(-100%);
+      transition: transform .35s ease;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+    }
+
+    #thumbOverlay.show {
+      transform: translateY(0);
+    }
+
+    #thumbStrip {
+      display: flex;
+      gap: 8px;
+      padding: 0 16px;
+      overflow-x: auto;
+      width: 100%;
+      scrollbar-width: none; /* Firefox */
+    }
+
+    #thumbStrip::-webkit-scrollbar {
+      display: none; /* Safari/Chrome */
+    }
+
+    #thumbStrip img {
+      height: 60px;
+      flex-shrink: 0;
+      opacity: 0.6;
+      border-radius: 3px;
+      transition: opacity .2s ease, transform .2s ease, outline .2s ease;
+    }
+
+    #thumbStrip img.active {
+      opacity: 1;
+      transform: scale(1.03);
+      outline: 2px solid #fff;
+    }
   </style>
 </head>
 <body>
@@ -89,17 +137,31 @@
     <img id="img" alt="Landscape" />
     <img id="imgNext" alt="Volgende" />
 
+    <!-- Caption -->
     <div id="caption" aria-live="polite">
       <div class="place"></div>
       <div class="country"></div>
     </div>
+
+    <!-- Thumbnail-balk -->
+    <div id="thumbOverlay">
+      <div id="thumbStrip"></div>
+    </div>
   </div>
 
   <script>
+    /* =========================
+       DATA
+    ==========================*/
+
     // 46 foto's: L0 t/m L45
     const images = Array.from({ length: 46 }, (_, n) => `images/L${n}.jpg`);
 
-    // Metadata (0–45, aansluitend)
+    // Voor nu gebruiken we dezelfde bestanden als thumbnails.
+    // Later kun je dit aanpassen naar bv. `thumbs/L${n}.jpg`
+    const thumbs = images.slice();
+
+    // Metadata (0–45)
     const meta = Array.from({ length: images.length }, () => ({ country: "", place: "" }));
 
     meta[1]  = { country: "New Zealand", place: "Tongariro National Park" };
@@ -148,18 +210,25 @@
     meta[44] = { country: "Australia", place: "K'gari" };
     meta[45] = { country: "Australia", place: "K'gari" };
 
-    let i = 0;
-    const stage = document.getElementById("stage");
-    const img = document.getElementById("img");
-    const imgNext = document.getElementById("imgNext");
-    const caption = document.getElementById("caption");
-    const capPlace = caption.querySelector(".place");
-    const capCountry = caption.querySelector(".country");
+    /* =========================
+       ELEMENTEN & STATE
+    ==========================*/
 
-    /* --------- Caption helpers ---------- */
+    let i = 0;
+    const stage       = document.getElementById("stage");
+    const img         = document.getElementById("img");
+    const imgNext     = document.getElementById("imgNext");
+    const caption     = document.getElementById("caption");
+    const capPlace    = caption.querySelector(".place");
+    const capCountry  = caption.querySelector(".country");
+    const thumbOverlay = document.getElementById("thumbOverlay");
+    const thumbStrip   = document.getElementById("thumbStrip");
+
+    let thumbsVisible = false;
+
     function setCaption(idx) {
       const m = meta[idx] || { country: "", place: "" };
-      capPlace.textContent = m.place || "";
+      capPlace.textContent   = m.place   || "";
       capCountry.textContent = m.country || "";
     }
 
@@ -174,17 +243,64 @@
       caption.classList.remove("show");
     }
 
+    function showThumbs() {
+      thumbsVisible = true;
+      thumbOverlay.classList.add('show');
+      updateActiveThumb(i);
+      scrollThumbsTo(i);
+    }
+
+    function hideThumbs() {
+      thumbsVisible = false;
+      thumbOverlay.classList.remove('show');
+    }
+
+    function buildThumbs() {
+      thumbStrip.innerHTML = "";
+      images.forEach((src, idx) => {
+        const t = document.createElement("img");
+        t.src = thumbs[idx];
+        t.dataset.index = idx;
+        t.addEventListener("click", () => {
+          if (idx === i) {
+            hideThumbs();
+            return;
+          }
+          if (zoomActive) return;
+          hideCaption();
+          hideThumbs();
+          const dir = idx > i ? 1 : -1;
+          slideTo(idx, dir);
+        });
+        thumbStrip.appendChild(t);
+      });
+      updateActiveThumb(0);
+    }
+
+    function updateActiveThumb(index) {
+      const imgs = thumbStrip.querySelectorAll("img");
+      imgs.forEach(imgEl => {
+        imgEl.classList.toggle("active", Number(imgEl.dataset.index) === index);
+      });
+    }
+
+    function scrollThumbsTo(index) {
+      const active = thumbStrip.querySelector(`img[data-index="${index}"]`);
+      if (!active) return;
+      const container = thumbStrip;
+      const target = active.offsetLeft - (container.clientWidth / 2) + (active.clientWidth / 2);
+      container.scrollLeft = Math.max(0, target);
+    }
+
     /* --------- Zoom state (double-tap) ---------- */
     let zoom = 1;
     let panX = 0, panY = 0;
     let zoomActive = false;
     let panStartX = 0, panStartY = 0;
     let basePanX = 0, basePanY = 0;
-
     const ZOOM_FACTOR = 2.5;
 
     function applyZoom() {
-      // simpele clamp, zodat je niet eindeloos buiten beeld kan slepen
       const w = window.innerWidth;
       const h = window.innerHeight;
       const maxX = (zoom - 1) * w * 0.5;
@@ -245,6 +361,9 @@
           hideCaption();
           resetZoom();
 
+          updateActiveThumb(i);
+          if (thumbsVisible) scrollThumbsTo(i);
+
           const preloadNext = new Image();
           preloadNext.src = images[(nextIndex + 1) % images.length];
         }, DURATION);
@@ -262,6 +381,7 @@
 
     /* --------- Gesture handling ---------- */
     let sx = 0, sy = 0, t0 = 0;
+    let startAtTop = false;
     let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
 
     const EDGE = 24, SW = 40, TAP = 10, TAPMS = 600, SWIPE_Y = 40;
@@ -271,7 +391,6 @@
       const t = e.touches[0];
 
       if (zoomActive) {
-        // pan door foto
         panStartX = t.clientX;
         panStartY = t.clientY;
         basePanX = panX;
@@ -280,6 +399,7 @@
         sx = t.clientX;
         sy = t.clientY;
         t0 = Date.now();
+        startAtTop = sy < 80; // swipe vanaf bovenste rand
         if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; }
       }
     }, { passive: true });
@@ -296,7 +416,7 @@
       applyZoom();
     }, { passive: false });
 
-    // touchend: double-tap / zoom / swipe / caption
+    // touchend: double-tap / zoom / swipe / caption / thumbnails
     stage.addEventListener("touchend", e => {
       const t = e.changedTouches[0];
       const now = Date.now();
@@ -305,38 +425,44 @@
       const dyTap = t.clientY - lastTapY;
       const dtTap = now - lastTapTime;
 
-      // Double-tap detectie (klein gebied + korte tijd)
+      // Double-tap detectie
       const doubleTap = dtTap < 300 && Math.abs(dxTap) < 20 && Math.abs(dyTap) < 20;
 
       if (doubleTap) {
-        // toggle zoom
         if (!zoomActive) {
           zoomActive = true;
           zoom = ZOOM_FACTOR;
           panX = 0;
           panY = 0;
           hideCaption();
+          hideThumbs();
           applyZoom();
         } else {
           resetZoom();
         }
         lastTapTime = 0;
-        return; // geen swipe/tap logica daarna
+        return;
       } else {
         lastTapTime = now;
         lastTapX = t.clientX;
         lastTapY = t.clientY;
       }
 
-      // Als ingezoomd: verder niks (geen foto-wissel of caption)
       if (zoomActive) return;
 
       const dx = t.clientX - sx;
       const dy = t.clientY - sy;
       const dt = now - t0;
       const isHorizontal = Math.abs(dx) > Math.abs(dy);
-      const isVertical = !isHorizontal;
+      const isVertical   = !isHorizontal;
 
+      // Swipe verticaal vanaf top → thumbnails
+      if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800 && startAtTop && dy > 0 && !thumbsVisible) {
+        showThumbs();
+        return;
+      }
+
+      // Normale swipe logica
       if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
         dx < 0 ? next() : prev();
         return;
@@ -352,7 +478,7 @@
       }
     }, { passive: true });
 
-    // Desktop: klik = volgende, pijltjes links/rechts, 'i' = caption toggle
+    // Desktop: klik = volgende, pijltjes voor/terug, 'i' caption toggle
     stage.addEventListener("click", () => {
       if (!zoomActive) next();
     });
@@ -363,19 +489,30 @@
         return;
       }
       if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowLeft")  prev();
       if (e.key.toLowerCase?.() === "i") {
         if (caption.classList.contains("show")) hideCaption();
         else showCaption();
       }
     });
 
+    /* --------- PWA & rubber-band fix ---------- */
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("./sw.js").catch(() => {});
     }
 
-    // Geen rubber-band scroll op iOS
-    document.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
+    document.addEventListener("touchmove", e => {
+      // horizontaal scrollen in thumbnailstrip wel toestaan
+      if (thumbsVisible && e.target.closest && e.target.closest('#thumbStrip')) {
+        return;
+      }
+      if (!zoomActive) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    /* --------- Init ---------- */
+    buildThumbs();
   </script>
 </body>
 </html>
