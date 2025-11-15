@@ -98,6 +98,7 @@
       z-index: 10;
       display: flex;
       align-items: center;
+      touch-action: pan-x;  /* alleen horizontaal scroll-achtig gedrag */
     }
 
     #thumbOverlay.show {
@@ -111,6 +112,7 @@
       overflow-x: auto;
       width: 100%;
       scrollbar-width: none;
+      touch-action: pan-x;  /* alleen X-scroll, geen Y-stuiter */
     }
 
     #thumbStrip::-webkit-scrollbar {
@@ -384,15 +386,33 @@
     let startAtTop = false;
     let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
 
-    const EDGE = 24, SW = 40, TAPMS = 600, SWIPE_Y = 40;
+    const EDGE = 24, SW = 40, SWIPE_Y = 40;
 
     function isInThumbOverlay(e) {
       return e.target.closest && e.target.closest('#thumbOverlay');
     }
 
+    // Swipe-voor-hiden op de balk zelf
+    let overlayStartY = 0, overlayT0 = 0;
+    thumbOverlay.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      overlayStartY = t.clientY;
+      overlayT0 = Date.now();
+    }, { passive: true });
+
+    thumbOverlay.addEventListener('touchend', e => {
+      const t = e.changedTouches[0];
+      const dy = t.clientY - overlayStartY;
+      const dt = Date.now() - overlayT0;
+      // swipe omhoog om te sluiten
+      if (dy < -SWIPE_Y && dt < 800 && thumbsVisible) {
+        hideThumbs();
+      }
+    }, { passive: true });
+
     // touchstart
     stage.addEventListener("touchstart", e => {
-      if (isInThumbOverlay(e)) return; // interactie met thumbnails → geen swipe-setup
+      if (isInThumbOverlay(e)) return; // balk-interactie gaat apart
 
       const t = e.touches[0];
 
@@ -425,7 +445,7 @@
 
     // touchend
     stage.addEventListener("touchend", e => {
-      if (isInThumbOverlay(e)) return; // alles in de balk laten we met rust
+      if (isInThumbOverlay(e)) return;
 
       const t = e.changedTouches[0];
       const now = Date.now();
@@ -464,12 +484,13 @@
       const isHorizontal = Math.abs(dx) > Math.abs(dy);
       const isVertical   = !isHorizontal;
 
-      // Als de thumbnailbalk open is: geen foto-wissel / caption; je blijft op dezelfde foto
+      // Als de thumbnailbalk open is: altijd op dezelfde foto blijven,
+      // swipes op het hoofdbeeld negeren.
       if (thumbsVisible) {
         return;
       }
 
-      // Swipe verticaal vanaf top → thumbnails
+      // Swipe verticaal vanaf top → thumbnails tonen
       if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800 && startAtTop && dy > 0 && !thumbsVisible) {
         showThumbs();
         return;
@@ -489,7 +510,7 @@
       }
     }, { passive: true });
 
-    // Desktop: alleen pijltjes + 'i' + 'z', geen klik-next meer
+    // Desktop: pijltjes + 'i' + 'z'
     document.addEventListener("keydown", e => {
       if (zoomActive) {
         if (e.key.toLowerCase?.() === "z") resetZoom();
