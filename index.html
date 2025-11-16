@@ -2,168 +2,145 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pictures of Places</title>
+  <title>Pictures of Places – Intro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
   <style>
     :root {
-      --sand: #f4ebdf;
-      --text-main: #fdf7ee;
-      --text-dark: #3b2b21;
+      --bg-sand: #f4ebdf;
     }
 
-    /* Scroll-snap: elke swipe één frame */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow-x: hidden;
-      scroll-behavior: smooth;
-      scroll-snap-type: y mandatory;
-      background: var(--sand);
+      background: var(--bg-sand);
     }
 
+    /* We hebben scroll nodig om de animatie te triggeren */
     body {
-      font-family: Georgia, "Times New Roman", serif;
+      min-height: 200vh; /* 1 scherm extra ruimte */
     }
 
-    .frames {
-      /* gewoon een stapel secties onder elkaar */
-    }
-
-    .frame {
-      position: relative;
-      height: 100vh;
-      width: 100vw;
-      scroll-snap-align: start;
+    /* Vast canvas bovenop alles: hier liggen de duinen */
+    #hero {
+      position: fixed;
+      inset: 0;
       overflow: hidden;
-      color: var(--text-main);
+      background: var(--bg-sand);
+      z-index: 1;
     }
 
-    /* Achtergrondlaag per frame */
-    .frame::before {
-      content: "";
+    #layers {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .layer {
       position: absolute;
       inset: 0;
       background-repeat: no-repeat;
-      background-position: center;
-      background-size: cover;
-      z-index: 1;
-    }
-
-    /* Frame 1: titelbeeld */
-    .frame-1::before {
-      /* gebruik hier het bestand dat overeenkomt met je mockup 1 */
-      background-image: url("images/Startscreen1.4.png");
-    }
-
-    /* Frame 2: zelfde canyon-beeld, eventueel iets anders uitlijnen */
-    .frame-2::before {
-      background-image: url("images/Startscreen2.4.png");
-      background-position: center right;
-    }
-
-    /* Contentblok boven de achtergrond */
-    .frame-content {
-      position: relative;
-      z-index: 2;
-      height: 100%;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 0 10vw;
-    }
-
-    /* Frame 1 typografie */
-    .title {
-      font-size: clamp(34px, 7vw, 52px);
-      line-height: 1.1;
-      margin: 0 0 18px 0;
-    }
-
-    .subtitle {
-      font-size: clamp(14px, 3.2vw, 18px);
-      margin-bottom: 40px;
-    }
-
-    .scroll-hint {
-      position: absolute;
-      bottom: 9vh;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 14px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    /* Frame 2 typografie */
-    .frame-2 .frame-content {
-      justify-content: flex-start;
-      padding-top: 18vh;
-      color: var(--text-dark);
-    }
-
-    .frame-2-main {
-      font-size: clamp(18px, 4vw, 24px);
-      line-height: 1.5;
-      margin-bottom: 40px;
-    }
-
-    .frame-2-sub {
-      font-size: clamp(14px, 3.2vw, 18px);
-      line-height: 1.6;
-      max-width: 30em;
-      margin: 0 auto;
-    }
-
-    /* Kleine background-overlay om tekst beter leesbaar te maken op lichte delen */
-    .frame-2::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 30% 40%, rgba(244,235,223,0.9), transparent 60%);
-      z-index: 1;
+      background-position: right top;  /* start rechts-boven */
+      background-size: auto 155%;      /* 155% van schermhoogte */
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
       pointer-events: none;
+    }
+
+    /* Laag-volgorde: 4.4 onderaan, 1.4 bovenaan */
+    .layer-44 {
+      background-image: url("images/Startscreen4.4.png");
+      z-index: 1;
+    }
+    .layer-34 {
+      background-image: url("images/Startscreen3.4.png");
+      z-index: 2;
+    }
+    .layer-24 {
+      background-image: url("images/Startscreen2.4.png");
+      z-index: 3;
+    }
+    .layer-14 {
+      background-image: url("images/Startscreen1.4.png");
+      z-index: 4;
+    }
+
+    /* Tekst in het midden van het scherm */
+    .frame-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(28px, 6vw, 40px);
+      color: #ffffff;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+      pointer-events: none;
+      transition: opacity 0.3s ease;
     }
   </style>
 </head>
 <body>
-  <div class="frames">
 
-    <!-- FRAME 1 – Titel -->
-    <section class="frame frame-1">
-      <div class="frame-content">
-        <h1 class="title">
-          Pictures<br/>of<br/>Places
-        </h1>
-        <div class="subtitle">
-          Made by Berend
-        </div>
-        <div class="scroll-hint">
-          Scroll down
-        </div>
-      </div>
-    </section>
+  <!-- Vast canvas met lagen -->
+  <div id="hero">
+    <div id="layers">
+      <div class="layer layer-44" id="layer44"></div>
+      <div class="layer layer-34" id="layer34"></div>
+      <div class="layer layer-24" id="layer24"></div>
+      <div class="layer layer-14" id="layer14"></div>
 
-    <!-- FRAME 2 – Uitleg / context -->
-    <section class="frame frame-2">
-      <div class="frame-content">
-        <p class="frame-2-main">
-          This site is made to showcase an album with the best photos I took
-          whilst traveling.
-        </p>
-        <p class="frame-2-sub">
-          It also serves as an exercise in designing and “vibe coding” a
-          website – something I’m working on for a university course.
-          The focus is on a calm, fullscreen viewing experience:
-          no clutter, no feeds, just images and a bit of story.
-        </p>
-      </div>
-    </section>
-
+      <div class="frame-label" id="frameLabel">frame 1</div>
+    </div>
   </div>
+
+  <!-- Lege ruimte puur om te kunnen scrollen -->
+  <div style="height: 200vh;"></div>
+
+  <script>
+    const l44 = document.getElementById('layer44');
+    const l34 = document.getElementById('layer34');
+    const l24 = document.getElementById('layer24');
+    const l14 = document.getElementById('layer14');
+    const label = document.getElementById('frameLabel');
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function onScroll() {
+      const scrollY   = window.scrollY || window.pageYOffset;
+      const viewportH = window.innerHeight;
+
+      // progress 0 (bovenaan) → 1 (1 scherm omlaag)
+      const progress = clamp(scrollY / viewportH, 0, 1);
+
+      // Hoeveel we willen schuiven
+      const upY   = -200 * progress;   // andere lagen omhoog
+      const downY =  200 * progress;   // 4.4 omlaag
+      const rightX = 30 * progress;    // 4.4 naar rechts in vw
+
+      // Alle lagen behalve 4.4 gaan omhoog
+      l34.style.transform = `translate3d(0, ${upY}px, 0)`;
+      l24.style.transform = `translate3d(0, ${upY}px, 0)`;
+      l14.style.transform = `translate3d(0, ${upY}px, 0)`;
+
+      // Startscreen4.4: naar beneden + naar rechts
+      l44.style.transform = `translate3d(${rightX}vw, ${downY}px, 0)`;
+
+      // Tekst wisselen tussen "frame 1" en "frame 2"
+      if (progress < 0.5) {
+        label.textContent = "frame 1";
+      } else {
+        label.textContent = "frame 2";
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // initial state
+  </script>
 </body>
 </html>
