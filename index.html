@@ -24,12 +24,18 @@ body {
 }
 
     /* Vast canvas bovenop alles: hier liggen de duinen */
-   #hero {
+  .hero {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100svh;   /* of 100dvh, beide zijn beter dan 100vh op iOS */
+
+  /* FIX: 100dvh vult ook de safe-area onderaan */
+  height: 100dvh;
+
+  /* FIX: iPhone safe-area opheffen */
+  padding-bottom: env(safe-area-inset-bottom);
+
   overflow: hidden;
   background: var(--bg-sand);
   z-index: 1;
@@ -46,7 +52,7 @@ body {
   inset: 0;
   background-repeat: no-repeat;
   background-position: right 0px;  /* i.p.v. right top */
-  background-size: auto 155%;
+  background-size: auto 170%;
   will-change: background-position;
   pointer-events: none;
 }
