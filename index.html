@@ -18,15 +18,14 @@
       overflow-x: hidden;
     }
 
-    /* We geven de pagina extra hoogte zodat je iets te scrollen hebt */
+    /* Gewoon extra hoogte zodat je kunt scrollen */
     body {
       min-height: 300vh;
     }
 
-    /* Sticky canvas dat in beeld blijft terwijl je scrolt */
+    /* Hero is nu NIET sticky meer, scrolt mee met de pagina */
     #hero {
-      position: sticky;
-      top: 0;
+      position: relative;
       height: 100vh;
       overflow: hidden;
       background: var(--sand);
@@ -42,29 +41,29 @@
       position: absolute;
       inset: 0;
       background-repeat: no-repeat;
-      background-position: right top;   /* uitlijning */
-      background-size: auto 140%;       /* ongeveer 140% van schermhoogte */
+      background-position: right top;   /* start rechtsboven */
+      background-size: auto 140%;       /* ~140% hoogte */
       pointer-events: none;
       will-change: transform;
     }
 
-    /* Achtergrondlaag */
+    /* Achtergrond */
     .bg {
       background-image: url("images/StartscreenBackground.png");
       z-index: 1;
     }
 
-    /* Stilstaande laag (3.4) */
-    .layer-34 {
-      background-image: url("images/Startscreen3.4.png");
-      z-index: 2;
-    }
-
-    /* Laag die moet bewegen (4.4) */
+    /* Beweeg-laag (4.4) MOET onder de andere liggen */
     .layer-44 {
       background-image: url("images/Startscreen4.4.png");
-      z-index: 3;
+      z-index: 2;               /* onder 3.4 */
       transform: translateX(0);
+    }
+
+    /* Stilstaande laag (3.4) erboven */
+    .layer-34 {
+      background-image: url("images/Startscreen3.4.png");
+      z-index: 3;
     }
   </style>
 </head>
@@ -73,8 +72,8 @@
   <section id="hero">
     <div id="layers">
       <div class="layer bg"></div>
-      <div class="layer layer-34"></div>
       <div class="layer layer-44" id="movingLayer"></div>
+      <div class="layer layer-34"></div>
     </div>
   </section>
 
@@ -90,23 +89,24 @@
       const rect      = hero.getBoundingClientRect();
       const viewportH = window.innerHeight;
 
-      // hoeveel px is de hero al "omhoog geschoven" ?
-      const offset = -rect.top;
+      // hoeveel px is de hero al voorbij de bovenkant?
+      const offset = -rect.top;          // 0 bij start, >0 als je naar beneden scrolt
 
-      // over welk bereik willen we animeren?
-      const totalRange = viewportH * 2;   // 0 → 2 schermhoogtes scroll
+      // over welk gebied willen we animeren?
+      const totalRange = viewportH * 2;  // 0 → 2 schermhoogtes scroll
       let progress = clamp(offset / totalRange, 0, 1);
 
-      // maximale verschuiving naar rechts (in viewport-breedtes)
+      // maximale verschuiving naar rechts
       const maxShiftX = 50; // 50vw
 
       const tx = progress * maxShiftX;
 
+      // Alleen X verschuiven; geen Y → geen “meebewegen” op Y-as
       movingLayer.style.transform = `translateX(${tx}vw)`;
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll(); // initiale positie instellen
+    onScroll();
   </script>
 </body>
 </html>
