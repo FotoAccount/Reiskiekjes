@@ -19,18 +19,21 @@
     }
 
     /* We hebben scroll nodig om de animatie te triggeren */
-    body {
-      min-height: 200vh; /* 1 scherm extra ruimte */
-    }
+body {
+  min-height: 200svh; /* niet per se nodig, maar iets consistenter */
+}
 
     /* Vast canvas bovenop alles: hier liggen de duinen */
-    #hero {
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      background: var(--bg-sand);
-      z-index: 1;
-    }
+   #hero {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100svh;   /* of 100dvh, beide zijn beter dan 100vh op iOS */
+  overflow: hidden;
+  background: var(--bg-sand);
+  z-index: 1;
+}
 
     #layers {
       position: relative;
