@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pictures of Places</title>
+  <title>Pictures of Places – Intro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
   <style>
@@ -15,22 +15,16 @@
       padding: 0;
       height: 100%;
       background: var(--sand);
-      color: #fff;
-      font-family: "Georgia", "Times New Roman", serif;
-    }
-
-    body {
       overflow-x: hidden;
     }
 
-    /* We geven de pagina extra hoogte zodat je iets te scrollen hebt. */
-    .page {
-      min-height: 300vh;
-      background: var(--sand);
+    /* Genoeg hoogte zodat je naar beneden kunt scrollen */
+    body {
+      min-height: 400vh;
     }
 
-    /* HERO: sticky canvas met alle lagen */
-    .hero {
+    /* Hero blijft in beeld terwijl je scrollt */
+    #hero {
       position: sticky;
       top: 0;
       height: 100vh;
@@ -38,205 +32,133 @@
       background: var(--sand);
     }
 
-    .hero-layers {
+    #layers {
       position: relative;
       width: 100%;
       height: 100%;
     }
 
-    .hero-layer {
+    .layer {
       position: absolute;
       inset: 0;
       background-repeat: no-repeat;
-      background-position: right top;   /* start bovenaan rechts */
-      background-size: auto 140%;       /* ongeveer 140% hoogte */
+      background-position: right top;   /* dezelfde uitlijning */
+      background-size: auto 140%;       /* ~140% hoogte */
       pointer-events: none;
-      transform: translateX(0);         /* basis: geen verschuiving */
-      transform-origin: center top;     /* veranker aan de bovenkant */
-      will-change: transform, opacity;
+      will-change: opacity;
       opacity: 1;
     }
 
-    /* Laag-volgorde (achter → voor) */
+    /* Achtergrond (blijft altijd zichtbaar) */
     .layer-bg {
       background-image: url("images/StartscreenBackground.png");
       z-index: 1;
     }
-    .layer-4 {
+
+    /* Van achter naar voor: 4.4 → 3.4 → 2.4 → 1.4 */
+    .layer-44 {
       background-image: url("images/Startscreen4.4.png");
       z-index: 2;
     }
-    .layer-3 {
+
+    .layer-34 {
       background-image: url("images/Startscreen3.4.png");
       z-index: 3;
     }
-    .layer-2 {
+
+    .layer-24 {
       background-image: url("images/Startscreen2.4.png");
       z-index: 4;
     }
-    .layer-1 {
+
+    .layer-14 {
       background-image: url("images/Startscreen1.4.png");
-      z-index: 5; /* bovenste laag, blijft staan */
+      z-index: 5;
     }
 
-    /* Tekst in het midden van het hero-scherm */
-    .hero-text {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 0 12vw;
-      z-index: 10;
-      color: #fdf8f0;
-    }
-
-    .hero-title {
-      font-size: clamp(32px, 7vw, 52px);
-      line-height: 1.1;
-      margin-bottom: 16px;
-    }
-
-    .hero-sub {
-      font-size: clamp(14px, 3.5vw, 18px);
-      margin-bottom: 40px;
-    }
-
-    .hero-scroll {
-      position: absolute;
-      bottom: 8vh;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 14px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    /* Volgende sectie – placeholder voor uitleg/intro */
-    .intro-section {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 18vh 18px 24vh;
-      color: #3b2b21;
-      font-size: 18px;
-      line-height: 1.6;
+    /* Gewoon lege ruimte eronder zodat je kunt scrollen */
+    .spacer {
+      height: 300vh;
     }
   </style>
 </head>
 <body>
-  <div class="page">
 
-    <!-- HERO MET LAGEN -->
-    <section class="hero" id="hero">
-      <div class="hero-layers">
-        <div class="hero-layer layer-bg"></div>
+  <section id="hero">
+    <div id="layers">
+      <div class="layer layer-bg"></div>
+      <div class="layer layer-44" id="layer44"></div>
+      <div class="layer layer-34" id="layer34"></div>
+      <div class="layer layer-24" id="layer24"></div>
+      <div class="layer layer-14" id="layer14"></div>
+    </div>
+  </section>
 
-        <!-- Beweegt als eerste -->
-        <div class="hero-layer layer-4" id="layer44"></div>
-        <!-- Beweegt als tweede -->
-        <div class="hero-layer layer-3" id="layer34"></div>
-        <!-- Beweegt als derde -->
-        <div class="hero-layer layer-2" id="layer24"></div>
-
-        <!-- Blijft staan, beweegt niet -->
-        <div class="hero-layer layer-1"></div>
-
-        <div class="hero-text">
-          <div class="hero-title">
-            Pictures<br/>of<br/>Places
-          </div>
-          <div class="hero-sub">
-            Made by Berend
-          </div>
-          <div class="hero-scroll">
-            Scroll down
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TEKSTSECTIE (kun je later aanpassen) -->
-    <section class="intro-section">
-      <p>
-        This site is made to showcase an album with some of the best photos
-        I took whilst traveling.
-      </p>
-      <p>
-        It also doubles as a small design &amp; “vibe coding” experiment:
-        building a minimal, fullscreen photo experience without any ads,
-        clutter or social media noise. Just images, motion and a bit of story.
-      </p>
-      <p>
-        Further down this page we’ll add the entrance to the albums:
-        one for <strong>Landscape</strong> and one for <strong>Portrait</strong>.
-      </p>
-    </section>
-
-  </div>
+  <div class="spacer"></div>
 
   <script>
     const hero   = document.getElementById('hero');
-    const l44    = document.getElementById('layer44'); // Startscreen4.4
-    const l34    = document.getElementById('layer34'); // Startscreen3.4
-    const l24    = document.getElementById('layer24'); // Startscreen2.4
-    // layer-1 blijft staan, geen JS nodig
+    const l44    = document.getElementById('layer44');
+    const l34    = document.getElementById('layer34');
+    const l24    = document.getElementById('layer24');
+    const l14    = document.getElementById('layer14');
 
     function clamp(v, min, max) {
       return Math.max(min, Math.min(max, v));
     }
 
-    function animateLayer(layer, progress, start, end, maxShiftVW) {
+    function fadeLayer(layer, progress, start, end) {
       if (!layer) return;
 
       if (progress <= start) {
-        // vóór de fase
-        layer.style.transform = 'translateX(0)';
-        layer.style.opacity   = '1';
+        layer.style.opacity = '1';
         return;
       }
       if (progress >= end) {
-        // ná de fase
-        layer.style.transform = `translateX(${maxShiftVW}vw)`;
-        layer.style.opacity   = '0';
+        layer.style.opacity = '0';
         return;
       }
 
-      // progress binnen de eigen fase (0–1)
-      const local = (progress - start) / (end - start);
-
-      const tx = local * maxShiftVW;
+      const local = (progress - start) / (end - start); // 0–1
       const op = 1 - local;
-
-      layer.style.transform = `translateX(${tx}vw)`;
-      layer.style.opacity   = String(op);
+      layer.style.opacity = String(op);
     }
 
     function onScroll() {
-      const rect      = hero.getBoundingClientRect();
+      const scrollY   = window.scrollY || window.pageYOffset;
+      const heroTop   = hero.offsetTop;          // waar de hero in de pagina begint
       const viewportH = window.innerHeight;
 
-      // hoeveel px is de hero al "langs" gescrold?
-      const offset = -rect.top; // 0 bij begin, >0 als je naar beneden gaat
+      // hoe ver zijn we voorbij het begin van de hero gescrold?
+      const offset = scrollY - heroTop;
 
-      // totale range voor de animatie (hier 3 schermhoogtes scroll)
+      if (offset <= 0) {
+        // helemaal bovenaan: alles zichtbaar
+        l44.style.opacity = '1';
+        l34.style.opacity = '1';
+        l24.style.opacity = '1';
+        l14.style.opacity = '1';
+        return;
+      }
+
+      // totale range waarbinnen alle fades gebeuren (hier: 3 schermhoogtes)
       const totalRange = viewportH * 3;
       let progress = clamp(offset / totalRange, 0, 1); // 0–1
 
-      const phase    = 1 / 3;  // 3 gelijke fases
-      const maxShift = 50;     // 50vw naar rechts
+      const phase = 1 / 4; // 4 lagen om weg te faden
 
-      // 4.4: fase 0.00–0.33
-      animateLayer(l44, progress, 0 * phase, 1 * phase, maxShift);
-      // 3.4: fase 0.33–0.66
-      animateLayer(l34, progress, 1 * phase, 2 * phase, maxShift);
-      // 2.4: fase 0.66–1.00
-      animateLayer(l24, progress, 2 * phase, 3 * phase, maxShift);
+      // 4.4 verdwijnt in fase 0.00–0.25
+      fadeLayer(l44, progress, 0 * phase, 1 * phase);
+      // 3.4 verdwijnt in fase 0.25–0.50
+      fadeLayer(l34, progress, 1 * phase, 2 * phase);
+      // 2.4 verdwijnt in fase 0.50–0.75
+      fadeLayer(l24, progress, 2 * phase, 3 * phase);
+      // 1.4 verdwijnt in fase 0.75–1.00
+      fadeLayer(l14, progress, 3 * phase, 4 * phase);
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll(); // initiale state
+    onScroll(); // initial state
   </script>
 </body>
 </html>
