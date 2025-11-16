@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pictures of Places</title>
+  <title>Pictures of Places – Intro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
   <style>
@@ -15,23 +15,16 @@
       padding: 0;
       height: 100%;
       background: var(--sand);
-      color: #fff;
-      font-family: "Georgia", "Times New Roman", serif;
-    }
-
-    body {
       overflow-x: hidden;
     }
 
-    /* We geven de pagina extra hoogte zodat je iets te scrollen hebt.
-       Later kunnen we dit nog tunen. */
-    .page {
+    /* We geven de pagina extra hoogte zodat je iets te scrollen hebt */
+    body {
       min-height: 300vh;
-      background: var(--sand);
     }
 
-    /* HERO: sticky canvas met alle lagen */
-    .hero {
+    /* Sticky canvas dat in beeld blijft terwijl je scrolt */
+    #hero {
       position: sticky;
       top: 0;
       height: 100vh;
@@ -39,174 +32,81 @@
       background: var(--sand);
     }
 
-    .hero-layers {
+    #layers {
       position: relative;
       width: 100%;
       height: 100%;
     }
 
-    .hero-layer {
+    .layer {
       position: absolute;
       inset: 0;
       background-repeat: no-repeat;
-      background-position: right top;   /* start bovenaan rechts */
-      background-size: auto 140%;       /* ongeveer 140% hoogte */
+      background-position: right top;   /* uitlijning */
+      background-size: auto 140%;       /* ongeveer 140% van schermhoogte */
       pointer-events: none;
-      transform: scale(1.0);            /* basis, JS voegt hier translate aan toe */
-      transform-origin: center top;     /* veranker aan de bovenkant */
       will-change: transform;
     }
 
-    /* Laag-volgorde (achter → voor) */
-    .layer-bg {
+    /* Achtergrondlaag */
+    .bg {
       background-image: url("images/StartscreenBackground.png");
       z-index: 1;
     }
-    .layer-4 {
-      background-image: url("images/Startscreen4.4.png");
+
+    /* Stilstaande laag (3.4) */
+    .layer-34 {
+      background-image: url("images/Startscreen3.4.png");
       z-index: 2;
     }
-    .layer-3 {
-      background-image: url("images/Startscreen3.4.png");
+
+    /* Laag die moet bewegen (4.4) */
+    .layer-44 {
+      background-image: url("images/Startscreen4.4.png");
       z-index: 3;
-    }
-    .layer-2 {
-      background-image: url("images/Startscreen2.4.png");
-      z-index: 4;
-    }
-    .layer-1 {
-      background-image: url("images/Startscreen1.4.png");
-      z-index: 5; /* bovenste laag */
-    }
-
-    /* Tekst in het midden van het hero-scherm */
-    .hero-text {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 0 12vw;
-      z-index: 10;
-      color: #fdf8f0;
-    }
-
-    .hero-title {
-      font-size: clamp(32px, 7vw, 52px);
-      line-height: 1.1;
-      margin-bottom: 16px;
-    }
-
-    .hero-sub {
-      font-size: clamp(14px, 3.5vw, 18px);
-      margin-bottom: 40px;
-    }
-
-    .hero-scroll {
-      position: absolute;
-      bottom: 8vh;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 14px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    /* Volgende sectie – placeholder voor uitleg/intro */
-    .intro-section {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 18vh 18px 24vh;
-      color: #3b2b21;
-      font-size: 18px;
-      line-height: 1.6;
+      transform: translateX(0);
     }
   </style>
 </head>
 <body>
-  <div class="page">
 
-    <!-- HERO MET LAGEN -->
-    <section class="hero" id="hero">
-      <div class="hero-layers">
-        <div class="hero-layer layer-bg"></div>
-        <div class="hero-layer layer-4"></div>
-        <div class="hero-layer layer-3"></div>
-        <div class="hero-layer layer-2"></div>
-        <div class="hero-layer layer-1" id="topLayer"></div>
-
-        <div class="hero-text">
-          <div class="hero-title">
-            Pictures<br/>of<br/>Places
-          </div>
-          <div class="hero-sub">
-            Made by Berend
-          </div>
-          <div class="hero-scroll">
-            Scroll down
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TEKSTSECTIE (kun je later aanpassen) -->
-    <section class="intro-section">
-      <p>
-        This site is made to showcase an album with some of the best photos
-        I took whilst traveling.
-      </p>
-      <p>
-        It also doubles as a small design &amp; “vibe coding” experiment:
-        building a minimal, fullscreen photo experience without any ads,
-        clutter or social media noise. Just images, motion and a bit of story.
-      </p>
-      <p>
-        Further down this page we’ll add the entrance to the albums:
-        one for <strong>Landscape</strong> and one for <strong>Portrait</strong>.
-      </p>
-    </section>
-
-  </div>
+  <section id="hero">
+    <div id="layers">
+      <div class="layer bg"></div>
+      <div class="layer layer-34"></div>
+      <div class="layer layer-44" id="movingLayer"></div>
+    </div>
+  </section>
 
   <script>
-    // EERSTE SCROLL-ANIMATIE:
-    // Alleen de bovenste laag (Startscreen1.4) schuift naar rechts
-    // terwijl je van 0 → ~2 schermhoogtes scrolt.
-
-    const hero      = document.getElementById('hero');
-    const topLayer  = document.getElementById('topLayer');
+    const hero        = document.getElementById('hero');
+    const movingLayer = document.getElementById('movingLayer');
 
     function clamp(v, min, max) {
       return Math.max(min, Math.min(max, v));
     }
 
     function onScroll() {
-      const heroRect = hero.getBoundingClientRect();
+      const rect      = hero.getBoundingClientRect();
       const viewportH = window.innerHeight;
 
-      // Hoe ver zijn we "door" de hero heen gescrolld?
-      // Als hero net begint: progress ~0
-      // Als we ongeveer 2 schermhoogtes verder zijn: progress ~1
-      const totalRange = viewportH * 2; // kun je later tweaken
-      const offset = -heroRect.top; // hoeveel px hero al omhoog is geschoven
+      // hoeveel px is de hero al "omhoog geschoven" ?
+      const offset = -rect.top;
+
+      // over welk bereik willen we animeren?
+      const totalRange = viewportH * 2;   // 0 → 2 schermhoogtes scroll
       let progress = clamp(offset / totalRange, 0, 1);
 
-      // Max horizontale verschuiving (in viewport-breedtes)
-      const maxShiftX = 50;  // 50vw naar rechts als progress = 1
-      const maxShiftY = 10;  // klein beetje naar beneden voor extra diepte
+      // maximale verschuiving naar rechts (in viewport-breedtes)
+      const maxShiftX = 50; // 50vw
 
       const tx = progress * maxShiftX;
-      const ty = progress * maxShiftY;
 
-      // We houden de schaal constant (ongeveer 140% via background-size),
-      // alleen de positie verschuift.
-      topLayer.style.transform = `translate(${tx}vw, ${ty}vh)`;
+      movingLayer.style.transform = `translateX(${tx}vw)`;
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll(); // initial state
+    onScroll(); // initiale positie instellen
   </script>
 </body>
 </html>
