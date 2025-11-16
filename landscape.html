@@ -112,7 +112,7 @@
       overflow-x: auto;
       width: 100%;
       scrollbar-width: none;
-      touch-action: pan-x;  /* alleen X-scroll, geen Y-stuiter */
+      touch-action: pan-x;
     }
 
     #thumbStrip::-webkit-scrollbar {
@@ -209,7 +209,7 @@
     meta[42] = { country: "Australia", place: "Tarzali" };
     meta[43] = { country: "Australia", place: "Sydney" };
     meta[44] = { country: "Australia", place: "K'gari" };
-    meta[45] = { country: "Australia", place: "K'gari" };
+     meta[45] = { country: "Australia", place: "K'gari" };
 
     /* =========================
        ELEMENTEN & STATE
@@ -301,16 +301,15 @@
     let panStartX = 0, panStartY = 0;
     let basePanX = 0, basePanY = 0;
     const ZOOM_FACTOR = 2.5;
+    const ZOOM_ANIM_MS = 260; // langzamer in/uit
 
-    function applyZoom() {
+    function updateTransform() {
       const w = window.innerWidth;
       const h = window.innerHeight;
       const maxX = (zoom - 1) * w * 0.5;
       const maxY = (zoom - 1) * h * 0.5;
       panX = Math.max(-maxX, Math.min(maxX, panX));
       panY = Math.max(-maxY, Math.min(maxY, panY));
-
-      img.style.transition = 'transform 80ms linear';
       img.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
     }
 
@@ -404,19 +403,19 @@
       const t = e.changedTouches[0];
       const dy = t.clientY - overlayStartY;
       const dt = Date.now() - overlayT0;
-      // swipe omhoog om te sluiten
       if (dy < -SWIPE_Y && dt < 800 && thumbsVisible) {
         hideThumbs();
       }
     }, { passive: true });
 
-    // touchstart
+    // touchstart op hoofdbeeld
     stage.addEventListener("touchstart", e => {
-      if (isInThumbOverlay(e)) return; // balk-interactie gaat apart
+      if (isInThumbOverlay(e)) return;
 
       const t = e.touches[0];
 
       if (zoomActive) {
+        img.style.transition = 'none';  // pan moet direct reageren
         panStartX = t.clientX;
         panStartY = t.clientY;
         basePanX = panX;
@@ -440,7 +439,7 @@
       const dy = t.clientY - panStartY;
       panX = basePanX + dx;
       panY = basePanY + dy;
-      applyZoom();
+      updateTransform();
     }, { passive: false });
 
     // touchend
@@ -457,16 +456,31 @@
       const doubleTap = dtTap < 300 && Math.abs(dxTap) < 20 && Math.abs(dyTap) < 20;
 
       if (doubleTap) {
+        // toggle zoom
         if (!zoomActive) {
+          // Zoom IN, gecentreerd op tikpositie
           zoomActive = true;
+          img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
           zoom = ZOOM_FACTOR;
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          const cx = t.clientX - w / 2;
+          const cy = t.clientY - h / 2;
+          panX = -(zoom - 1) * cx;
+          panY = -(zoom - 1) * cy;
+          updateTransform();
+          setTimeout(() => { img.style.transition = 'none'; }, ZOOM_ANIM_MS);
+        } else {
+          // Zoom UIT met dezelfde snelheid
+          img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
+          zoom = 1;
           panX = 0;
           panY = 0;
-          hideCaption();
-          hideThumbs();
-          applyZoom();
-        } else {
-          resetZoom();
+          updateTransform();
+          setTimeout(() => {
+            img.style.transition = 'none';
+            zoomActive = false;
+          }, ZOOM_ANIM_MS);
         }
         lastTapTime = 0;
         return;
@@ -484,8 +498,7 @@
       const isHorizontal = Math.abs(dx) > Math.abs(dy);
       const isVertical   = !isHorizontal;
 
-      // Als de thumbnailbalk open is: altijd op dezelfde foto blijven,
-      // swipes op het hoofdbeeld negeren.
+      // Als de thumbnailbalk open is: swipes op hoofdbeeld negeren
       if (thumbsVisible) {
         return;
       }
