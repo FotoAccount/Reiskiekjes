@@ -103,11 +103,11 @@
   <!-- Alleen om scrollruimte te hebben -->
   <div class="spacer"></div>
 
-  <script>
+   <script>
     const l44 = document.getElementById('layer44');
     const l34 = document.getElementById('layer34');
     const l24 = document.getElementById('layer24');
-    const l14 = document.getElementById('layer14');
+    const l14 = document.getElementById('layer14'); // blijft straks altijd 1.0
 
     function clamp(v, min, max) {
       return Math.max(min, Math.min(max, v));
@@ -134,20 +134,23 @@
       const scrollY   = window.scrollY || window.pageYOffset;
       const viewportH = window.innerHeight;
 
-      // totale range waarbinnen alle fades gebeuren (3 schermhoogtes)
-      const totalRange = viewportH * 3;
+      // LANGZAMER: we gebruiken nu 6 schermhoogtes in plaats van 3
+      const totalRange = viewportH * 6;      // → 2x zo langzaam
       let progress = clamp(scrollY / totalRange, 0, 1); // 0–1
 
-      const phase = 1 / 4; // 4 lagen om weg te faden
+      const phase = 1 / 3; // we hebben nu nog maar 3 lagen die faden
 
-      // 4.4 verdwijnt in fase 0.00–0.25
+      // 4.4 verdwijnt in fase 0.00–0.33
       fadeLayer(l44, progress, 0 * phase, 1 * phase);
-      // 3.4 verdwijnt in fase 0.25–0.50
+      // 3.4 verdwijnt in fase 0.33–0.66
       fadeLayer(l34, progress, 1 * phase, 2 * phase);
-      // 2.4 verdwijnt in fase 0.50–0.75
+      // 2.4 verdwijnt in fase 0.66–1.00
       fadeLayer(l24, progress, 2 * phase, 3 * phase);
-      // 1.4 verdwijnt in fase 0.75–1.00
-      fadeLayer(l14, progress, 3 * phase, 4 * phase);
+
+      // 1.4 altijd volledig zichtbaar
+      if (l14) {
+        l14.style.opacity = '1';
+      }
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
