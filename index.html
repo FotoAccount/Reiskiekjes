@@ -100,47 +100,42 @@
   <!-- Lege ruimte puur om te kunnen scrollen -->
   <div style="height: 200vh;"></div>
 
-  <script>
-    const l44 = document.getElementById('layer44');
-    const l34 = document.getElementById('layer34');
-    const l24 = document.getElementById('layer24');
-    const l14 = document.getElementById('layer14');
-    const label = document.getElementById('frameLabel');
+ <script>
+  const l44 = document.getElementById('layer44');
+  const l34 = document.getElementById('layer34');
+  const l24 = document.getElementById('layer24');
+  const l14 = document.getElementById('layer14');
+  const label = document.getElementById('frameLabel');
 
-    function clamp(v, min, max) {
-      return Math.max(min, Math.min(max, v));
-    }
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
 
-    function onScroll() {
-      const scrollY   = window.scrollY || window.pageYOffset;
-      const viewportH = window.innerHeight;
+  function onScroll() {
+    const scrollY   = window.scrollY || window.pageYOffset;
+    const viewportH = window.innerHeight;
 
-      // progress 0 (bovenaan) → 1 (1 scherm omlaag)
-      const progress = clamp(scrollY / viewportH, 0, 1);
+    // scroll progress: 0 → 1
+    const progress = clamp(scrollY / viewportH, 0, 1);
 
-      // Hoeveel we willen schuiven
-      const upY   = -200 * progress;   // andere lagen omhoog
-      const downY =  200 * progress;   // 4.4 omlaag
-      const rightX = 30 * progress;    // 4.4 naar rechts in vw
+    // overal 200px omhoog
+    const upY = -200 * progress;
 
-      // Alle lagen behalve 4.4 gaan omhoog
-      l34.style.transform = `translate3d(0, ${upY}px, 0)`;
-      l24.style.transform = `translate3d(0, ${upY}px, 0)`;
-      l14.style.transform = `translate3d(0, ${upY}px, 0)`;
+    // startscreen44 extra naar rechts
+    const rightX = 30 * progress;  // 30vw
 
-      // Startscreen4.4: naar beneden + naar rechts
-      l44.style.transform = `translate3d(${rightX}vw, ${downY}px, 0)`;
+    // ⭐ ALLE lagen omhoog
+    l44.style.transform = `translate(${rightX}vw, ${upY}px)`; // omhoog + rechts
+    l34.style.transform = `translate(0, ${upY}px)`;
+    l24.style.transform = `translate(0, ${upY}px)`;
+    l14.style.transform = `translate(0, ${upY}px)`;
 
-      // Tekst wisselen tussen "frame 1" en "frame 2"
-      if (progress < 0.5) {
-        label.textContent = "frame 1";
-      } else {
-        label.textContent = "frame 2";
-      }
-    }
+    // frame tekst (voor nu heel simpel)
+    label.textContent = progress < 0.5 ? "frame 1" : "frame 2";
+  }
 
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll(); // initial state
-  </script>
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
 </body>
 </html>
