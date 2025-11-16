@@ -45,8 +45,8 @@
       position: absolute;
       inset: 0;
       background-repeat: no-repeat;
-      background-position: right top;   /* zelfde uitlijning */
-      background-size: auto 140%;       /* ~140% hoogte */
+      background-position: right top;   /* start rechtsboven */
+      background-size: auto 155%;       /* iets groter dan 140% (~ +15%) */
       pointer-events: none;
       will-change: transform;
       transform: translateX(0);
@@ -139,19 +139,39 @@
       const scrollY   = window.scrollY || window.pageYOffset;
       const viewportH = window.innerHeight;
 
-      // 3 schermhoogtes was "normaal", we doen nu 1.5x langzamer → 4.5
-      const totalRange = viewportH * 4.5;      // 1.5x trager dan 3*H
+      // 3 schermhoogtes was "normaal", 4.5 is ~1.5x langzamer
+      const totalRange = viewportH * 4.5;
       let progress = clamp(scrollY / totalRange, 0, 1); // 0–1
 
-      const phase    = 1 / 3;   // drie fases: 4.4, 3.4, 2.4
-      const maxShift = 80;      // hoeveel naar rechts (in vw). Pas gerust aan.
+      const phase   = 1 / 3;   // basis-segment
+      const overlap = 0.35;    // 35% overlap tussen lagen
 
-      // 4.4: fase 0.00–0.33
-      slideLayer(l44, progress, 0 * phase, 1 * phase, maxShift);
-      // 3.4: fase 0.33–0.66
-      slideLayer(l34, progress, 1 * phase, 2 * phase, maxShift);
-      // 2.4: fase 0.66–1.00
-      slideLayer(l24, progress, 2 * phase, 3 * phase, maxShift);
+      // basis-fases zonder overlap:
+      // 4.4: 0.00–0.33
+      // 3.4: 0.33–0.66
+      // 2.4: 0.66–1.00
+      //
+      // we laten 3.4 35% eerder beginnen → overlap met 4.4
+      // en 2.4 35% eerder beginnen → overlap met 3.4
+
+      const start44 = 0.0;
+      const end44   = 1 * phase;
+
+      const start34 = 1 * phase - overlap * phase;  // 35% eerder
+      const end34   = 2 * phase;
+
+      const start24 = 2 * phase - overlap * phase;  // ook met overlap
+      const end24   = 1.0;                          // eindigt aan het einde
+
+      const maxShift44   = 40;  // 4.4 hoeft niet zo ver → 40vw
+      const maxShiftRest = 60;  // 3.4 en 2.4 mogen iets verder schuiven
+
+      // 4.4
+      slideLayer(l44, progress, start44, end44, maxShift44);
+      // 3.4 (begint terwijl 4.4 nog bezig is)
+      slideLayer(l34, progress, start34, end34, maxShiftRest);
+      // 2.4 (begint terwijl 3.4 nog bezig is)
+      slideLayer(l24, progress, start24, end24, maxShiftRest);
 
       // 1.4 blijft altijd gewoon staan
       if (l14) {
