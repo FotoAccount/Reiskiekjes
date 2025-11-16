@@ -23,13 +23,16 @@
       min-height: 400vh;
     }
 
-    /* Hero blijft in beeld terwijl je scrollt */
+    /* HERO: nu FIXED in plaats van sticky → blijft altijd op dezelfde plek */
     #hero {
-      position: sticky;
+      position: fixed;
       top: 0;
+      left: 0;
+      width: 100vw;
       height: 100vh;
       overflow: hidden;
       background: var(--sand);
+      z-index: 1;
     }
 
     #layers {
@@ -42,7 +45,7 @@
       position: absolute;
       inset: 0;
       background-repeat: no-repeat;
-      background-position: right top;   /* dezelfde uitlijning */
+      background-position: right top;   /* dezelfde uitlijning als eerder */
       background-size: auto 140%;       /* ~140% hoogte */
       pointer-events: none;
       will-change: opacity;
@@ -76,14 +79,17 @@
       z-index: 5;
     }
 
-    /* Gewoon lege ruimte eronder zodat je kunt scrollen */
+    /* Onzichtbare ruimte erachter zodat je kunt scrollen */
     .spacer {
-      height: 300vh;
+      position: relative;
+      z-index: 0;          /* onder de hero */
+      height: 400vh;
     }
   </style>
 </head>
 <body>
 
+  <!-- Vast beeld bovenop alles -->
   <section id="hero">
     <div id="layers">
       <div class="layer layer-bg"></div>
@@ -94,14 +100,14 @@
     </div>
   </section>
 
+  <!-- Alleen om scrollruimte te hebben -->
   <div class="spacer"></div>
 
   <script>
-    const hero   = document.getElementById('hero');
-    const l44    = document.getElementById('layer44');
-    const l34    = document.getElementById('layer34');
-    const l24    = document.getElementById('layer24');
-    const l14    = document.getElementById('layer14');
+    const l44 = document.getElementById('layer44');
+    const l34 = document.getElementById('layer34');
+    const l24 = document.getElementById('layer24');
+    const l14 = document.getElementById('layer14');
 
     function clamp(v, min, max) {
       return Math.max(min, Math.min(max, v));
@@ -126,24 +132,11 @@
 
     function onScroll() {
       const scrollY   = window.scrollY || window.pageYOffset;
-      const heroTop   = hero.offsetTop;          // waar de hero in de pagina begint
       const viewportH = window.innerHeight;
 
-      // hoe ver zijn we voorbij het begin van de hero gescrold?
-      const offset = scrollY - heroTop;
-
-      if (offset <= 0) {
-        // helemaal bovenaan: alles zichtbaar
-        l44.style.opacity = '1';
-        l34.style.opacity = '1';
-        l24.style.opacity = '1';
-        l14.style.opacity = '1';
-        return;
-      }
-
-      // totale range waarbinnen alle fades gebeuren (hier: 3 schermhoogtes)
+      // totale range waarbinnen alle fades gebeuren (3 schermhoogtes)
       const totalRange = viewportH * 3;
-      let progress = clamp(offset / totalRange, 0, 1); // 0–1
+      let progress = clamp(scrollY / totalRange, 0, 1); // 0–1
 
       const phase = 1 / 4; // 4 lagen om weg te faden
 
