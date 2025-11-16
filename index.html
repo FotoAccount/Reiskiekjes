@@ -23,7 +23,7 @@
       min-height: 400vh;
     }
 
-    /* HERO: nu FIXED in plaats van sticky → blijft altijd op dezelfde plek */
+    /* HERO: vast in beeld, altijd zelfde plek op het scherm */
     #hero {
       position: fixed;
       top: 0;
@@ -45,11 +45,11 @@
       position: absolute;
       inset: 0;
       background-repeat: no-repeat;
-      background-position: right top;   /* dezelfde uitlijning als eerder */
+      background-position: right top;   /* zelfde uitlijning */
       background-size: auto 140%;       /* ~140% hoogte */
       pointer-events: none;
-      will-change: opacity;
-      opacity: 1;
+      will-change: transform;
+      transform: translateX(0);
     }
 
     /* Achtergrond (blijft altijd zichtbaar) */
@@ -76,7 +76,7 @@
 
     .layer-14 {
       background-image: url("images/Startscreen1.4.png");
-      z-index: 5;
+      z-index: 5; /* blijft altijd in beeld, geen animatie */
     }
 
     /* Onzichtbare ruimte erachter zodat je kunt scrollen */
@@ -103,53 +103,59 @@
   <!-- Alleen om scrollruimte te hebben -->
   <div class="spacer"></div>
 
-   <script>
-    const l44 = document.getElementById('layer44');
-    const l34 = document.getElementById('layer34');
-    const l24 = document.getElementById('layer24');
-    const l14 = document.getElementById('layer14'); // blijft straks altijd 1.0
+  <script>
+    const l44 = document.getElementById('layer44'); // Startscreen4.4
+    const l34 = document.getElementById('layer34'); // Startscreen3.4
+    const l24 = document.getElementById('layer24'); // Startscreen2.4
+    const l14 = document.getElementById('layer14'); // Startscreen1.4 (blijft staan)
 
     function clamp(v, min, max) {
       return Math.max(min, Math.min(max, v));
     }
 
-    function fadeLayer(layer, progress, start, end) {
+    // Laat een laag over zijn eigen segment naar rechts schuiven
+    function slideLayer(layer, progress, start, end, maxShiftVW) {
       if (!layer) return;
 
       if (progress <= start) {
-        layer.style.opacity = '1';
+        // vóór de fase: nog niet bewegen
+        layer.style.transform = 'translateX(0)';
         return;
       }
       if (progress >= end) {
-        layer.style.opacity = '0';
+        // na de fase: volledig naar rechts geschoven
+        layer.style.transform = `translateX(${maxShiftVW}vw)`;
         return;
       }
 
-      const local = (progress - start) / (end - start); // 0–1
-      const op = 1 - local;
-      layer.style.opacity = String(op);
+      // progress binnen de eigen fase (0–1)
+      const local = (progress - start) / (end - start);
+      const tx = local * maxShiftVW;
+
+      layer.style.transform = `translateX(${tx}vw)`;
     }
 
     function onScroll() {
       const scrollY   = window.scrollY || window.pageYOffset;
       const viewportH = window.innerHeight;
 
-      // LANGZAMER: we gebruiken nu 6 schermhoogtes in plaats van 3
-      const totalRange = viewportH * 6;      // → 2x zo langzaam
+      // 3 schermhoogtes was "normaal", we doen nu 1.5x langzamer → 4.5
+      const totalRange = viewportH * 4.5;      // 1.5x trager dan 3*H
       let progress = clamp(scrollY / totalRange, 0, 1); // 0–1
 
-      const phase = 1 / 3; // we hebben nu nog maar 3 lagen die faden
+      const phase    = 1 / 3;   // drie fases: 4.4, 3.4, 2.4
+      const maxShift = 80;      // hoeveel naar rechts (in vw). Pas gerust aan.
 
-      // 4.4 verdwijnt in fase 0.00–0.33
-      fadeLayer(l44, progress, 0 * phase, 1 * phase);
-      // 3.4 verdwijnt in fase 0.33–0.66
-      fadeLayer(l34, progress, 1 * phase, 2 * phase);
-      // 2.4 verdwijnt in fase 0.66–1.00
-      fadeLayer(l24, progress, 2 * phase, 3 * phase);
+      // 4.4: fase 0.00–0.33
+      slideLayer(l44, progress, 0 * phase, 1 * phase, maxShift);
+      // 3.4: fase 0.33–0.66
+      slideLayer(l34, progress, 1 * phase, 2 * phase, maxShift);
+      // 2.4: fase 0.66–1.00
+      slideLayer(l24, progress, 2 * phase, 3 * phase, maxShift);
 
-      // 1.4 altijd volledig zichtbaar
+      // 1.4 blijft altijd gewoon staan
       if (l14) {
-        l14.style.opacity = '1';
+        l14.style.transform = 'translateX(0)';
       }
     }
 
