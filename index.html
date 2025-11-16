@@ -38,16 +38,15 @@
       height: 100%;
     }
 
-    .layer {
-      position: absolute;
-      inset: 0;
-      background-repeat: no-repeat;
-      background-position: right top;  /* start rechts-boven */
-      background-size: auto 155%;      /* 155% van schermhoogte */
-      will-change: transform;
-      transform: translate3d(0, 0, 0);
-      pointer-events: none;
-    }
+   .layer {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-position: right 0px;  /* i.p.v. right top */
+  background-size: auto 155%;
+  will-change: background-position;
+  pointer-events: none;
+}
 
     /* Laag-volgorde: 4.4 onderaan, 1.4 bovenaan */
     .layer-44 {
@@ -100,7 +99,7 @@
   <!-- Lege ruimte puur om te kunnen scrollen -->
   <div style="height: 200vh;"></div>
 
- <script>
+<script>
   const l44 = document.getElementById('layer44');
   const l34 = document.getElementById('layer34');
   const l24 = document.getElementById('layer24');
@@ -115,27 +114,31 @@
     const scrollY   = window.scrollY || window.pageYOffset;
     const viewportH = window.innerHeight;
 
-    // scroll progress: 0 → 1
+    // progress 0 → 1 over één schermhoogte
     const progress = clamp(scrollY / viewportH, 0, 1);
 
-    // overal 200px omhoog
-    const upY = -200 * progress;
+    const shiftY = 200 * progress;   // 200px omhoog
+    const shiftX = 30  * progress;   // 30vw naar rechts voor 4.4
 
-    // startscreen44 extra naar rechts
-    const rightX = 30 * progress;  // 30vw
+    // Andere lagen: alleen omhoog (meer van de onderkant zichtbaar)
+    const posY = -shiftY; // negatief = beeld omhoog schuiven
+    const posYStr = posY + "px";
 
-    // ⭐ ALLE lagen omhoog
-    l44.style.transform = `translate(${rightX}vw, ${upY}px)`; // omhoog + rechts
-    l34.style.transform = `translate(0, ${upY}px)`;
-    l24.style.transform = `translate(0, ${upY}px)`;
-    l14.style.transform = `translate(0, ${upY}px)`;
+    l34.style.backgroundPosition = `right ${posYStr}`;
+    l24.style.backgroundPosition = `right ${posYStr}`;
+    l14.style.backgroundPosition = `right ${posYStr}`;
 
-    // frame tekst (voor nu heel simpel)
-    label.textContent = progress < 0.5 ? "frame 1" : "frame 2";
+    // 4.4: omhoog + naar rechts
+    const posX44 = `calc(100% + ${shiftX}vw)`;
+    l44.style.backgroundPosition = `${posX44} ${posYStr}`;
+
+    // Frame label
+    label.textContent = (progress < 0.5) ? "frame 1" : "frame 2";
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 </script>
+
 </body>
 </html>
