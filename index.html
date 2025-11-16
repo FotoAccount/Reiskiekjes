@@ -2,185 +2,168 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pictures of Places – Intro</title>
+  <title>Pictures of Places</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
   <style>
     :root {
       --sand: #f4ebdf;
+      --text-main: #fdf7ee;
+      --text-dark: #3b2b21;
     }
 
+    /* Scroll-snap: elke swipe één frame */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      background: var(--sand);
       overflow-x: hidden;
-    }
-
-    /* Genoeg hoogte zodat je naar beneden kunt scrollen */
-    body {
-      min-height: 400vh;
-    }
-
-    /* HERO: vast in beeld, altijd zelfde plek op het scherm */
-    #hero {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
+      scroll-behavior: smooth;
+      scroll-snap-type: y mandatory;
       background: var(--sand);
-      z-index: 1;
     }
 
-    #layers {
+    body {
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .frames {
+      /* gewoon een stapel secties onder elkaar */
+    }
+
+    .frame {
       position: relative;
-      width: 100%;
-      height: 100%;
+      height: 100vh;
+      width: 100vw;
+      scroll-snap-align: start;
+      overflow: hidden;
+      color: var(--text-main);
     }
 
-    .layer {
+    /* Achtergrondlaag per frame */
+    .frame::before {
+      content: "";
       position: absolute;
       inset: 0;
       background-repeat: no-repeat;
-      background-position: right top;   /* start rechtsboven */
-      background-size: auto 155%;       /* iets groter dan 140% (~ +15%) */
-      pointer-events: none;
-      will-change: transform;
-      transform: translateX(0);
-    }
-
-    /* Achtergrond (blijft altijd zichtbaar) */
-    .layer-bg {
-      background-image: url("images/StartscreenBackground.png");
+      background-position: center;
+      background-size: cover;
       z-index: 1;
     }
 
-    /* Van achter naar voor: 4.4 → 3.4 → 2.4 → 1.4 */
-    .layer-44 {
-      background-image: url("images/Startscreen4.4.png");
-      z-index: 2;
-    }
-
-    .layer-34 {
-      background-image: url("images/Startscreen3.4.png");
-      z-index: 3;
-    }
-
-    .layer-24 {
-      background-image: url("images/Startscreen2.4.png");
-      z-index: 4;
-    }
-
-    .layer-14 {
+    /* Frame 1: titelbeeld */
+    .frame-1::before {
+      /* gebruik hier het bestand dat overeenkomt met je mockup 1 */
       background-image: url("images/Startscreen1.4.png");
-      z-index: 5; /* blijft altijd in beeld, geen animatie */
     }
 
-    /* Onzichtbare ruimte erachter zodat je kunt scrollen */
-    .spacer {
+    /* Frame 2: zelfde canyon-beeld, eventueel iets anders uitlijnen */
+    .frame-2::before {
+      background-image: url("images/Startscreen2.4.png");
+      background-position: center right;
+    }
+
+    /* Contentblok boven de achtergrond */
+    .frame-content {
       position: relative;
-      z-index: 0;          /* onder de hero */
-      height: 400vh;
+      z-index: 2;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 10vw;
+    }
+
+    /* Frame 1 typografie */
+    .title {
+      font-size: clamp(34px, 7vw, 52px);
+      line-height: 1.1;
+      margin: 0 0 18px 0;
+    }
+
+    .subtitle {
+      font-size: clamp(14px, 3.2vw, 18px);
+      margin-bottom: 40px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 9vh;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Frame 2 typografie */
+    .frame-2 .frame-content {
+      justify-content: flex-start;
+      padding-top: 18vh;
+      color: var(--text-dark);
+    }
+
+    .frame-2-main {
+      font-size: clamp(18px, 4vw, 24px);
+      line-height: 1.5;
+      margin-bottom: 40px;
+    }
+
+    .frame-2-sub {
+      font-size: clamp(14px, 3.2vw, 18px);
+      line-height: 1.6;
+      max-width: 30em;
+      margin: 0 auto;
+    }
+
+    /* Kleine background-overlay om tekst beter leesbaar te maken op lichte delen */
+    .frame-2::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 40%, rgba(244,235,223,0.9), transparent 60%);
+      z-index: 1;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
+  <div class="frames">
 
-  <!-- Vast beeld bovenop alles -->
-  <section id="hero">
-    <div id="layers">
-      <div class="layer layer-bg"></div>
-      <div class="layer layer-44" id="layer44"></div>
-      <div class="layer layer-34" id="layer34"></div>
-      <div class="layer layer-24" id="layer24"></div>
-      <div class="layer layer-14" id="layer14"></div>
-    </div>
-  </section>
+    <!-- FRAME 1 – Titel -->
+    <section class="frame frame-1">
+      <div class="frame-content">
+        <h1 class="title">
+          Pictures<br/>of<br/>Places
+        </h1>
+        <div class="subtitle">
+          Made by Berend
+        </div>
+        <div class="scroll-hint">
+          Scroll down
+        </div>
+      </div>
+    </section>
 
-  <!-- Alleen om scrollruimte te hebben -->
-  <div class="spacer"></div>
+    <!-- FRAME 2 – Uitleg / context -->
+    <section class="frame frame-2">
+      <div class="frame-content">
+        <p class="frame-2-main">
+          This site is made to showcase an album with the best photos I took
+          whilst traveling.
+        </p>
+        <p class="frame-2-sub">
+          It also serves as an exercise in designing and “vibe coding” a
+          website – something I’m working on for a university course.
+          The focus is on a calm, fullscreen viewing experience:
+          no clutter, no feeds, just images and a bit of story.
+        </p>
+      </div>
+    </section>
 
-  <script>
-    const l44 = document.getElementById('layer44'); // Startscreen4.4
-    const l34 = document.getElementById('layer34'); // Startscreen3.4
-    const l24 = document.getElementById('layer24'); // Startscreen2.4
-    const l14 = document.getElementById('layer14'); // Startscreen1.4 (blijft staan)
-
-    function clamp(v, min, max) {
-      return Math.max(min, Math.min(max, v));
-    }
-
-    // Laat een laag over zijn eigen segment naar rechts schuiven
-    function slideLayer(layer, progress, start, end, maxShiftVW) {
-      if (!layer) return;
-
-      if (progress <= start) {
-        // vóór de fase: nog niet bewegen
-        layer.style.transform = 'translateX(0)';
-        return;
-      }
-      if (progress >= end) {
-        // na de fase: volledig naar rechts geschoven
-        layer.style.transform = `translateX(${maxShiftVW}vw)`;
-        return;
-      }
-
-      // progress binnen de eigen fase (0–1)
-      const local = (progress - start) / (end - start);
-      const tx = local * maxShiftVW;
-
-      layer.style.transform = `translateX(${tx}vw)`;
-    }
-
-    function onScroll() {
-      const scrollY   = window.scrollY || window.pageYOffset;
-      const viewportH = window.innerHeight;
-
-      // 3 schermhoogtes was "normaal", 4.5 is ~1.5x langzamer
-      const totalRange = viewportH * 4.5;
-      let progress = clamp(scrollY / totalRange, 0, 1); // 0–1
-
-      const phase   = 1 / 3;   // basis-segment
-      const overlap = 0.35;    // 35% overlap tussen lagen
-
-      // basis-fases zonder overlap:
-      // 4.4: 0.00–0.33
-      // 3.4: 0.33–0.66
-      // 2.4: 0.66–1.00
-      //
-      // we laten 3.4 35% eerder beginnen → overlap met 4.4
-      // en 2.4 35% eerder beginnen → overlap met 3.4
-
-      const start44 = 0.0;
-      const end44   = 1 * phase;
-
-      const start34 = 1 * phase - overlap * phase;  // 35% eerder
-      const end34   = 2 * phase;
-
-      const start24 = 2 * phase - overlap * phase;  // ook met overlap
-      const end24   = 1.0;                          // eindigt aan het einde
-
-      const maxShift44   = 40;  // 4.4 hoeft niet zo ver → 40vw
-      const maxShiftRest = 60;  // 3.4 en 2.4 mogen iets verder schuiven
-
-      // 4.4
-      slideLayer(l44, progress, start44, end44, maxShift44);
-      // 3.4 (begint terwijl 4.4 nog bezig is)
-      slideLayer(l34, progress, start34, end34, maxShiftRest);
-      // 2.4 (begint terwijl 3.4 nog bezig is)
-      slideLayer(l24, progress, start24, end24, maxShiftRest);
-
-      // 1.4 blijft altijd gewoon staan
-      if (l14) {
-        l14.style.transform = 'translateX(0)';
-      }
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll(); // initial state
-  </script>
+  </div>
 </body>
 </html>
