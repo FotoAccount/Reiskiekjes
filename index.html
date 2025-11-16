@@ -7,7 +7,7 @@
 
   <style>
     :root {
-      --sand: #f4ebdf; /* achtergrondkleur */
+      --sand: #f4ebdf;
     }
 
     html, body {
@@ -23,7 +23,8 @@
       overflow-x: hidden;
     }
 
-    /* Wrapper zodat je iets kunt scrollen (later koppelen we hier animatie aan) */
+    /* We geven de pagina extra hoogte zodat je iets te scrollen hebt.
+       Later kunnen we dit nog tunen. */
     .page {
       min-height: 300vh;
       background: var(--sand);
@@ -48,9 +49,12 @@
       position: absolute;
       inset: 0;
       background-repeat: no-repeat;
-      background-position: center bottom;
-      background-size: cover;
+      background-position: right top;   /* start bovenaan rechts */
+      background-size: auto 140%;       /* ongeveer 140% hoogte */
       pointer-events: none;
+      transform: scale(1.0);            /* basis, JS voegt hier translate aan toe */
+      transform-origin: center top;     /* veranker aan de bovenkant */
+      will-change: transform;
     }
 
     /* Laag-volgorde (achter → voor) */
@@ -58,25 +62,21 @@
       background-image: url("images/StartscreenBackground.png");
       z-index: 1;
     }
-
     .layer-4 {
       background-image: url("images/Startscreen4.4.png");
       z-index: 2;
     }
-
     .layer-3 {
       background-image: url("images/Startscreen3.4.png");
       z-index: 3;
     }
-
     .layer-2 {
       background-image: url("images/Startscreen2.4.png");
       z-index: 4;
     }
-
     .layer-1 {
       background-image: url("images/Startscreen1.4.png");
-      z-index: 5;
+      z-index: 5; /* bovenste laag */
     }
 
     /* Tekst in het midden van het hero-scherm */
@@ -129,13 +129,13 @@
   <div class="page">
 
     <!-- HERO MET LAGEN -->
-    <section class="hero">
+    <section class="hero" id="hero">
       <div class="hero-layers">
         <div class="hero-layer layer-bg"></div>
         <div class="hero-layer layer-4"></div>
         <div class="hero-layer layer-3"></div>
         <div class="hero-layer layer-2"></div>
-        <div class="hero-layer layer-1"></div>
+        <div class="hero-layer layer-1" id="topLayer"></div>
 
         <div class="hero-text">
           <div class="hero-title">
@@ -151,7 +151,7 @@
       </div>
     </section>
 
-    <!-- TEKSTSECTIE (kun je straks naar smaak aanpassen) -->
+    <!-- TEKSTSECTIE (kun je later aanpassen) -->
     <section class="intro-section">
       <p>
         This site is made to showcase an album with some of the best photos
@@ -169,5 +169,44 @@
     </section>
 
   </div>
+
+  <script>
+    // EERSTE SCROLL-ANIMATIE:
+    // Alleen de bovenste laag (Startscreen1.4) schuift naar rechts
+    // terwijl je van 0 → ~2 schermhoogtes scrolt.
+
+    const hero      = document.getElementById('hero');
+    const topLayer  = document.getElementById('topLayer');
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function onScroll() {
+      const heroRect = hero.getBoundingClientRect();
+      const viewportH = window.innerHeight;
+
+      // Hoe ver zijn we "door" de hero heen gescrolld?
+      // Als hero net begint: progress ~0
+      // Als we ongeveer 2 schermhoogtes verder zijn: progress ~1
+      const totalRange = viewportH * 2; // kun je later tweaken
+      const offset = -heroRect.top; // hoeveel px hero al omhoog is geschoven
+      let progress = clamp(offset / totalRange, 0, 1);
+
+      // Max horizontale verschuiving (in viewport-breedtes)
+      const maxShiftX = 50;  // 50vw naar rechts als progress = 1
+      const maxShiftY = 10;  // klein beetje naar beneden voor extra diepte
+
+      const tx = progress * maxShiftX;
+      const ty = progress * maxShiftY;
+
+      // We houden de schaal constant (ongeveer 140% via background-size),
+      // alleen de positie verschuift.
+      topLayer.style.transform = `translate(${tx}vw, ${ty}vh)`;
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // initial state
+  </script>
 </body>
 </html>
