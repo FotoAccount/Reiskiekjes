@@ -65,11 +65,28 @@
       text-shadow: 0 0 6px rgba(0,0,0,0.4);
       pointer-events: none;
       opacity: 0;
-      transform: translateY(12px);
+      transform: translate(0, 12px);
       transition: opacity .35s ease, transform .35s ease;
     }
 
-    #caption.show { opacity: 1; transform: translateY(0); }
+    #caption.show {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    /* Mee-schuiven met de foto bij swipe */
+    #caption.slide-left,
+    #caption.slide-right {
+      opacity: 0;
+    }
+
+    #caption.slide-left {
+      transform: translate(-100%, 0);
+    }
+
+    #caption.slide-right {
+      transform: translate(100%, 0);
+    }
 
     #caption .place {
       font-size: clamp(16px, 2.8vw, 24px);
@@ -98,7 +115,7 @@
       z-index: 10;
       display: flex;
       align-items: center;
-      touch-action: pan-x;  /* alleen horizontaal scroll-achtig gedrag */
+      touch-action: pan-x;
     }
 
     #thumbOverlay.show {
@@ -158,11 +175,8 @@
 
     // 46 foto's: L0 t/m L45
     const images = Array.from({ length: 46 }, (_, n) => `images/L${n}.jpg`);
-
-    // Voor nu gebruiken we dezelfde bestanden als thumbnails.
     const thumbs = images.slice();
 
-    // Metadata (0–45)
     const meta = Array.from({ length: images.length }, () => ({ country: "", place: "" }));
 
     meta[1]  = { country: "New Zealand", place: "Tongariro National Park" };
@@ -209,7 +223,7 @@
     meta[42] = { country: "Australia", place: "Tarzali" };
     meta[43] = { country: "Australia", place: "Sydney" };
     meta[44] = { country: "Australia", place: "K'gari" };
-     meta[45] = { country: "Australia", place: "K'gari" };
+    meta[45] = { country: "Australia", place: "K'gari" };
 
     /* =========================
        ELEMENTEN & STATE
@@ -236,12 +250,13 @@
     function showCaption() {
       const m = meta[i] || { country: "", place: "" };
       if (!m.country && !m.place) return;
+      caption.classList.remove('slide-left', 'slide-right');
       setCaption(i);
       caption.classList.add("show");
     }
 
     function hideCaption() {
-      caption.classList.remove("show");
+      caption.classList.remove("show", "slide-left", "slide-right");
     }
 
     function showThumbs() {
@@ -301,7 +316,7 @@
     let panStartX = 0, panStartY = 0;
     let basePanX = 0, basePanY = 0;
     const ZOOM_FACTOR = 2.5;
-    const ZOOM_ANIM_MS = 260; // langzamer in/uit
+    const ZOOM_ANIM_MS = 260;
 
     function updateTransform() {
       const w = window.innerWidth;
@@ -333,6 +348,19 @@
       animating = true;
       stage.classList.add("anim");
 
+      // Caption mee laten schuiven met de foto
+      let captionSliding = false;
+      if (caption.classList.contains('show')) {
+        captionSliding = true;
+        caption.classList.remove('show', 'slide-left', 'slide-right');
+        caption.style.transition = `transform ${DURATION}ms ease, opacity ${DURATION}ms ease`;
+        if (direction === 1) {
+          caption.classList.add('slide-left');
+        } else {
+          caption.classList.add('slide-right');
+        }
+      }
+
       const nextSrc = images[nextIndex];
       const preImg = new Image();
       preImg.src = nextSrc;
@@ -359,8 +387,12 @@
           i = nextIndex;
           animating = false;
           stage.classList.remove("anim");
-          hideCaption();
           resetZoom();
+
+          if (captionSliding) {
+            caption.classList.remove('slide-left', 'slide-right');
+            caption.style.transition = ''; // terug naar CSS default
+          }
 
           updateActiveThumb(i);
           if (thumbsVisible) scrollThumbsTo(i);
@@ -374,6 +406,10 @@
         console.warn("Kon afbeelding niet laden:", nextSrc);
         animating = false;
         stage.classList.remove("anim");
+        if (captionSliding) {
+          caption.classList.remove('slide-left', 'slide-right');
+          caption.style.transition = '';
+        }
       };
     }
 
@@ -391,7 +427,7 @@
       return e.target.closest && e.target.closest('#thumbOverlay');
     }
 
-    // Swipe-voor-hiden op de balk zelf
+    // Balk omhoog swipen om te sluiten
     let overlayStartY = 0, overlayT0 = 0;
     thumbOverlay.addEventListener('touchstart', e => {
       const t = e.touches[0];
@@ -408,14 +444,14 @@
       }
     }, { passive: true });
 
-    // touchstart op hoofdbeeld
+    // touchstart hoofdbeeld
     stage.addEventListener("touchstart", e => {
       if (isInThumbOverlay(e)) return;
 
       const t = e.touches[0];
 
       if (zoomActive) {
-        img.style.transition = 'none';  // pan moet direct reageren
+        img.style.transition = 'none';
         panStartX = t.clientX;
         panStartY = t.clientY;
         basePanX = panX;
@@ -429,7 +465,7 @@
       }
     }, { passive: true });
 
-    // touchmove: alleen pannen als ingezoomd
+    // pannen tijdens zoom
     stage.addEventListener("touchmove", e => {
       if (isInThumbOverlay(e)) return;
       if (!zoomActive) return;
@@ -456,9 +492,8 @@
       const doubleTap = dtTap < 300 && Math.abs(dxTap) < 20 && Math.abs(dyTap) < 20;
 
       if (doubleTap) {
-        // toggle zoom
         if (!zoomActive) {
-          // Zoom IN, gecentreerd op tikpositie
+          // Zoom IN op tikpositie
           zoomActive = true;
           img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
           zoom = ZOOM_FACTOR;
@@ -471,7 +506,7 @@
           updateTransform();
           setTimeout(() => { img.style.transition = 'none'; }, ZOOM_ANIM_MS);
         } else {
-          // Zoom UIT met dezelfde snelheid
+          // Smooth uitzoomen
           img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
           zoom = 1;
           panX = 0;
@@ -498,26 +533,23 @@
       const isHorizontal = Math.abs(dx) > Math.abs(dy);
       const isVertical   = !isHorizontal;
 
-      // Als de thumbnailbalk open is: swipes op hoofdbeeld negeren
       if (thumbsVisible) {
         return;
       }
 
-      // Swipe verticaal vanaf top → thumbnails tonen
+      // Verticaal vanaf top → thumbnails tonen
       if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800 && startAtTop && dy > 0 && !thumbsVisible) {
         showThumbs();
         return;
       }
 
-      // Horizontale swipe → volgende/vorige foto
+      // Horizontale swipe → foto wisselen
       if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
         dx < 0 ? next() : prev();
         return;
       }
 
-      // GEEN single-tap-next meer
-
-      // Verticaal → caption tonen/verbergen
+      // Verticaal → caption aan/uit
       if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
         if (dy < 0) showCaption(); else hideCaption();
       }
@@ -543,7 +575,6 @@
     }
 
     document.addEventListener("touchmove", e => {
-      // horizontaal scrollen in thumbnailstrip wel toestaan
       if (thumbsVisible && e.target.closest && e.target.closest('#thumbStrip')) {
         return;
       }
