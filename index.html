@@ -2,152 +2,169 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pictures of Places – Intro</title>
+  <title>Pictures from the past few years</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
   <style>
     :root {
-      --bg-sand: #f4ebdf;
+      --sand: #f4ebdf;
+      --text-dark: #1c2833;
+      --accent: #1f3145;
     }
 
     html, body {
       margin: 0;
       padding: 0;
-      height: 100%;
-      overflow-x: hidden;
-      background: var(--bg-sand);
+      background: var(--sand);
+      color: var(--text-dark);
+      font-family: "Georgia", "Times New Roman", serif;
     }
 
-    /* We hebben scroll nodig om de animatie te triggeren */
-body {
-  min-height: 200svh; /* niet per se nodig, maar iets consistenter */
-}
+    body {
+      min-height: 100vh;
+    }
 
-    /* Vast canvas bovenop alles: hier liggen de duinen */
-  .hero {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 8vh 18px 10vh;
+      box-sizing: border-box;
+    }
 
-  /* FIX: 100dvh vult ook de safe-area onderaan */
-  height: 100dvh;
+    /* Titelblok */
+    .hero-title {
+      text-align: left;
+      margin-bottom: 8vh;
+    }
 
-  /* FIX: iPhone safe-area opheffen */
-  padding-bottom: env(safe-area-inset-bottom);
+    .hero-title h1 {
+      margin: 0;
+      font-size: clamp(30px, 5.2vw, 46px);
+      line-height: 1.15;
+      color: var(--accent);
+    }
 
-  overflow: hidden;
-  background: var(--bg-sand);
-  z-index: 1;
-}
+    .hero-title .byline {
+      margin-top: 18px;
+      font-size: 14px;
+      text-align: right;
+    }
 
-    #layers {
-      position: relative;
+    /* Layout tekst + foto */
+    .intro-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (max-width: 768px) {
+      .intro-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 40px;
+      }
+
+      .hero-title {
+        text-align: center;
+      }
+
+      .hero-title .byline {
+        text-align: center;
+      }
+    }
+
+    .intro-text p {
+      margin: 0 0 1.1em;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .intro-text p:first-child {
+      text-indent: 0;
+    }
+
+    .intro-text .album-line {
+      margin-top: 2.2em;
+    }
+
+    .album-link {
+      display: inline-block;
+      margin-top: 0.4em;
+      font-size: 20px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--accent);
+    }
+
+    .album-link:active {
+      transform: translateY(1px);
+    }
+
+    /* Foto rechts */
+    .intro-photo {
+      margin: 0;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dark);
+    }
+
+    .intro-photo img {
+      display: block;
       width: 100%;
-      height: 100%;
+      height: auto;
     }
 
-   .layer {
-  position: absolute;
-  inset: 0;
-  background-repeat: no-repeat;
-  background-position: right 0px;  /* i.p.v. right top */
-  background-size: auto 170%;
-  will-change: background-position;
-  pointer-events: none;
-}
-
-    /* Laag-volgorde: 4.4 onderaan, 1.4 bovenaan */
-    .layer-44 {
-      background-image: url("images/Startscreen4.4.png");
-      z-index: 1;
-    }
-    .layer-34 {
-      background-image: url("images/Startscreen3.4.png");
-      z-index: 2;
-    }
-    .layer-24 {
-      background-image: url("images/Startscreen2.4.png");
-      z-index: 3;
-    }
-    .layer-14 {
-      background-image: url("images/Startscreen1.4.png");
-      z-index: 4;
+    .intro-photo figcaption {
+      margin-top: 8px;
+      line-height: 1.4;
     }
 
-    /* Tekst in het midden van het scherm */
-    .frame-label {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 5;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(28px, 6vw, 40px);
-      color: #ffffff;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.6);
-      pointer-events: none;
-      transition: opacity 0.3s ease;
+    .coords {
+      font-size: 11px;
     }
   </style>
 </head>
 <body>
+  <main class="page">
+    <!-- Titelblok -->
+    <header class="hero-title">
+      <h1>
+        Pictures from the<br/>
+        past few years
+      </h1>
+      <div class="byline">Made by Berend</div>
+    </header>
 
-  <!-- Vast canvas met lagen -->
-  <div id="hero">
-    <div id="layers">
-      <div class="layer layer-44" id="layer44"></div>
-      <div class="layer layer-34" id="layer34"></div>
-      <div class="layer layer-24" id="layer24"></div>
-      <div class="layer layer-14" id="layer14"></div>
+    <!-- Tekst links, foto rechts -->
+    <section class="intro-grid">
+      <div class="intro-text">
+        <p>
+          Hey,<br/>
+          I made this site for a course in my masters to practice with ‘vibe coding’ (I’m studying Industrial Design). As I was free to choose what kind of site I wanted build to practice, I decided to make a mini website around a photo album I’ve been making. It shows the best photos I’ve taken whilst traveling and living abroad. Most photos were shot on a Nikon 5300 and a few with a small analog. Hope you enjoy!
+        </p>
 
-      <div class="frame-label" id="frameLabel">frame 1</div>
-    </div>
-  </div>
+        <p>
+          Just a quick sidenote: The album was made for full screen, to see the pictures like this (can really recommend it) the next screen will walk you through the steps, only takes about 30 sec to do (can also recommend opening it on Safari, think it works better than Chrome).
+        </p>
 
-  <!-- Lege ruimte puur om te kunnen scrollen -->
-  <div style="height: 200vh;"></div>
+        <p class="album-line">
+          To go to the photo’s, click here:<br/>
+          <a href="landscape.html" class="album-link">ALBUM</a>
+        </p>
+      </div>
 
-<script>
-  const l44 = document.getElementById('layer44');
-  const l34 = document.getElementById('layer34');
-  const l24 = document.getElementById('layer24');
-  const l14 = document.getElementById('layer14');
-  const label = document.getElementById('frameLabel');
+      <figure class="intro-photo">
+        <!-- VERVANG dit pad door de echte bestandsnaam van je startfoto -->
+        <img src="images/start.jpg"
+             alt="Tent under a starry sky on the Kepler Track, New Zealand" />
 
-  function clamp(v, min, max) {
-    return Math.max(min, Math.min(max, v));
-  }
-
-  function onScroll() {
-    const scrollY   = window.scrollY || window.pageYOffset;
-    const viewportH = window.innerHeight;
-
-    // progress 0 → 1 over één schermhoogte
-    const progress = clamp(scrollY / viewportH, 0, 1);
-
-    const shiftY = 200 * progress;   // 200px omhoog
-    const shiftX = 30  * progress;   // 30vw naar rechts voor 4.4
-
-    // Andere lagen: alleen omhoog (meer van de onderkant zichtbaar)
-    const posY = -shiftY; // negatief = beeld omhoog schuiven
-    const posYStr = posY + "px";
-
-    l34.style.backgroundPosition = `right ${posYStr}`;
-    l24.style.backgroundPosition = `right ${posYStr}`;
-    l14.style.backgroundPosition = `right ${posYStr}`;
-
-    // 4.4: omhoog + naar rechts
-    const posX44 = `calc(100% + ${shiftX}vw)`;
-    l44.style.backgroundPosition = `${posX44} ${posYStr}`;
-
-    // Frame label
-    label.textContent = (progress < 0.5) ? "frame 1" : "frame 2";
-  }
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-</script>
-
+        <figcaption>
+          Kepler Track, New Zealand<br/>
+          <span class="coords">46°54′19.9″N 10°54′03.1″E</span>
+        </figcaption>
+      </figure>
+    </section>
+  </main>
 </body>
 </html>
