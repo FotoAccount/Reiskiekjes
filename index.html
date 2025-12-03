@@ -31,11 +31,16 @@
       padding-bottom: 10vh;
     }
 
-    .title-wrapper {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 0 var(--side-pad);
-    }
+  .intro-wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  padding: 0 var(--side-pad);
+  margin-top: 22vh; /* was ±15vh → nu lager */
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+}
 
     .title-main {
       margin: 0;
@@ -138,23 +143,18 @@
     <!-- TEKST + FOTO NAAST ELKAAR -->
     <main class="intro-layout">
       <section class="intro-text">
-        <p>Hey,</p>
-        <p>
-          I made this site for a course in my masters to practice with
-          ‘vibe coding’ (I’m studying Industrial Design). As I was free to
-          choose what kind of site I wanted build to practice, I decided to
-          make a mini website around a photo album I’ve been making. It shows
-          the best photos I’ve taken whilst traveling and living abroad. Most
-          photos were shot on a Nikon 5300 and a few with a small analog.
-          Hope you enjoy!
-        </p>
+      <p class="intro-text">
+  Hey, 
+  I made this site for a course in my masters to practice with ‘vibe coding’ (I’m studying Industrial Design).
+  As I was free to choose what kind of site I wanted to build to practice, I decided to make a mini website
+  around a photo album I’ve been making. It shows the best photos I’ve taken whilst traveling and living abroad.
+  Most photos were shot on a Nikon 5300 and a few with a small analog. Hope you enjoy!
+</p>
 
-        <p>
-          Just a quick sidenote: The album was made for full screen, to see
-          the pictures like this (can really recommend it) the next screen
-          will walk you through the steps, only takes about 30 sec to do
-          (can also recommend opening it on Safari, think it works better
-          than Chrome).
+          <p class="intro-text">
+          <strong>Important sidenote:</strong> The album was made for full screen, to see the pictures like this
+          (can really recommend it). The next screen will walk you through the steps, only takes about 30 sec to do.
+          (Can also recommend opening it on Safari, think it works better than Chrome).
         </p>
 
         <p class="intro-link">
