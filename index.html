@@ -5,125 +5,129 @@
   <title>Pictures from the past few years</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-  <style>
-    :root {
-      --sand: #f4ebdf;
-      --text-dark: #1c2833;
-      --accent: #1f3145;
-    }
+<style>
+  :root {
+    --sand: #f4ebdf;
+    --text-dark: #1c2833;
+    --accent: #1f3145;
+  }
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: var(--sand);
-      color: var(--text-dark);
-      font-family: "Georgia", "Times New Roman", serif;
-    }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--sand);
+    color: var(--text-dark);
+    font-family: "Georgia", "Times New Roman", serif;
+  }
 
-    body {
-      min-height: 100vh;
-    }
+  body {
+    min-height: 100vh;
+  }
 
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 6vh 18px 10vh;
+    box-sizing: border-box;
+  }
+
+  /* TITELBLOK – verder naar beneden en iets naar rechts */
+  .hero-title {
+    /* afstand vanaf bovenkant scherm */
+    margin: 18vh 0 7vh;
+
+    /* blok zelf smal en naar rechts geschoven */
+    max-width: 60%;
+    margin-left: 25%;
+
+    text-align: left;   /* regels zelf links uitlijnen */
+  }
+
+  .hero-title h1 {
+    margin: 0;
+    font-size: clamp(30px, 5.2vw, 46px);
+    line-height: 1.15;
+    color: var(--accent);
+  }
+
+  .hero-title .byline {
+    margin-top: 18px;
+    font-size: 14px;
+    text-align: right;
+  }
+
+  /* TEKST + FOTO NAAST ELKAAR */
+  .intro-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+
+  .intro-text p {
+    margin: 0 0 1.1em;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .intro-text .album-line {
+    margin-top: 2.2em;
+  }
+
+  .album-link {
+    display: inline-block;
+    margin-top: 0.4em;
+    font-size: 20px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--accent);
+  }
+
+  .album-link:active {
+    transform: translateY(1px);
+  }
+
+  /* FOTO RECHTS */
+  .intro-photo {
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dark);
+  }
+
+  .intro-photo img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .intro-photo figcaption {
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  .coords {
+    font-size: 11px;
+  }
+
+  /* Kleine tweaks voor hele smalle schermen, maar wél naast elkaar houden */
+  @media (max-width: 600px) {
     .page {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 8vh 18px 10vh;
-      box-sizing: border-box;
+      padding: 4vh 14px 8vh;
     }
 
-    /* Titelblok */
     .hero-title {
-      text-align: left;
-      margin-bottom: 8vh;
+      margin: 14vh 0 6vh;
+      max-width: 70%;
+      margin-left: 18%;
     }
 
-    .hero-title h1 {
-      margin: 0;
-      font-size: clamp(30px, 5.2vw, 46px);
-      line-height: 1.15;
-      color: var(--accent);
-    }
-
-    .hero-title .byline {
-      margin-top: 18px;
-      font-size: 14px;
-      text-align: right;
-    }
-
-    /* Layout tekst + foto */
     .intro-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-      gap: 32px;
-      align-items: start;
+      gap: 24px;
     }
-
-    @media (max-width: 768px) {
-      .intro-grid {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 40px;
-      }
-
-      .hero-title {
-        text-align: center;
-      }
-
-      .hero-title .byline {
-        text-align: center;
-      }
-    }
-
-    .intro-text p {
-      margin: 0 0 1.1em;
-      font-size: 15px;
-      line-height: 1.6;
-    }
-
-    .intro-text p:first-child {
-      text-indent: 0;
-    }
-
-    .intro-text .album-line {
-      margin-top: 2.2em;
-    }
-
-    .album-link {
-      display: inline-block;
-      margin-top: 0.4em;
-      font-size: 20px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      text-decoration: none;
-      color: var(--accent);
-    }
-
-    .album-link:active {
-      transform: translateY(1px);
-    }
-
-    /* Foto rechts */
-    .intro-photo {
-      margin: 0;
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-dark);
-    }
-
-    .intro-photo img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    .intro-photo figcaption {
-      margin-top: 8px;
-      line-height: 1.4;
-    }
-
-    .coords {
-      font-size: 11px;
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
   <main class="page">
