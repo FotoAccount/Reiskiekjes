@@ -537,8 +537,8 @@
         return;
       }
 
-      // Verticaal vanaf top → thumbnails tonen
-      if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800 && startAtTop && dy > 0 && !thumbsVisible) {
+      // Verticaal omlaag → thumbnails tonen (overal op het scherm)
+      if (isVertical && dy > SWIPE_Y && dt < 800 && !thumbsVisible) {
         showThumbs();
         return;
       }
