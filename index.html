@@ -8,170 +8,176 @@
   <style>
     :root {
       --sand: #f4ebdf;
-      --side-pad: 5vw;      /* zijkant-marge voor tekst + foto */
-      --text-color: #1f2530;
+      --ink:  #1f2633;
     }
 
     html, body {
       margin: 0;
       padding: 0;
+      height: 100%;
       background: var(--sand);
-      color: var(--text-color);
+      color: var(--ink);
       font-family: "Georgia", "Times New Roman", serif;
     }
 
-    .page {
-      min-height: 100vh;
+    body {
+      overflow-x: hidden;
     }
 
-    /* ---------------- TITELBLOK BOVEN ---------------- */
-
-    .intro-hero {
-      padding-top: 30vh;      /* ruimte bovenin */
-      padding-bottom: 10vh;
+    .page-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 10vh 7vw 10vh;
     }
 
-  .intro-wrapper {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 40px;
-  padding: 0 var(--side-pad);
-  margin-top: 35vh; /* was ±15vh → nu lager */
-  max-width: 780px;
-  margin-left: auto;
-  margin-right: auto;
-}
+    /* ─── TITEL + BYLINE ───────────────────────────────────────── */
 
-    .title-main {
-      margin: 0;
-      margin-left: 33vw;                  /* begint op 33% */
-      font-weight: 400;                   /* niet bold */
-      font-size: clamp(30px, 5.6vw, 42px);
-      line-height: 1.1;
-    }
-
-    .title-main span {
-      display: block;
-    }
-
-    .title-meta {
-      margin-top: 1.2rem;
-      margin-left: 33vw;
-      width: calc(100% - 33vw - var(--side-pad));
-      text-align: right;                  /* eindigt gelijk met rechterkant titel/foto */
-      font-size: 14px;
-    }
-
-    /* ---------------- TWEE KOL. LAYOUT ---------------- */
-
-    .intro-layout {
-      max-width: 1000px;
-      margin: 0 auto 12vh;
-      padding: 0 var(--side-pad);
+    .title-row {
+      margin-top: 18vh; /* titel lager zetten -> hoger/lager maken */
       display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
       column-gap: 7vw;
       align-items: flex-start;
     }
 
-    .intro-text p {
-      margin: 0 0 1.1rem;
-      font-size: 12px;
+    .hero-title {
+      grid-column: 1 / 3;         /* over beide kolommen */
+      justify-self: end;          /* rechterkant gelijk met foto */
+      text-align: right;
+      max-width: 20ch;            /* zorgt dat het op twee regels past */
+      margin: 0 0 0.5rem 0;
+      font-size: clamp(30px, 5vw, 40px);
+      font-weight: 400;           /* NIET bold */
+      line-height: 1.12;
+    }
+
+    .byline {
+      grid-column: 2 / 3;
+      justify-self: end;
+      margin: 0.4rem 0 0 0;
+      font-size: 0.9rem;
+    }
+
+    /* ─── TEKST + FOTO ─────────────────────────────────────────── */
+
+    .intro-layout {
+      margin-top: 8vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      column-gap: 7vw;
+      align-items: flex-start;
+    }
+
+    .intro-text {
+      font-size: 0.93rem;   /* iets kleiner */
       line-height: 1.5;
-      text-align: justify;                /* links + rechts recht */
+      text-align: justify;  /* mooie bloktekst links/rechts recht */
     }
 
-    .intro-link {
-      margin-top: 1.4rem;
+    .intro-text p {
+      margin: 0 0 0.9rem;
     }
 
-    .intro-link a {
-      font-size: 18px;
-      letter-spacing: 0.05em;
+    .intro-text strong {
+      font-weight: 700;
+    }
+
+    .album-link {
+      display: inline-block;
+      margin-top: 0.3rem;
+      font-size: 1.05rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       text-decoration: none;
-      color: var(--text-color);
-      border-bottom: 1px solid transparent;
+      color: var(--ink);
+      border-bottom: 1px solid var(--ink);
     }
 
-    .intro-link a:hover {
-      border-bottom-color: var(--text-color);
+    .album-link:hover {
+      opacity: 0.8;
     }
-
-    /* ---------------- FOTO + CAPTION ---------------- */
 
     .intro-photo {
-      margin: 0;
-    }
-
-    .intro-photo img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    .intro-photo figcaption {
-      margin-top: 0.6rem;
-      font-size: 11px;
       text-align: right;
     }
 
-    /* Kleine extra safety voor heel kleine schermen */
-    @media (max-width: 480px) {
-      .intro-hero {
-        padding-top: 14vh;
+    .intro-photo img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .intro-photo figcaption {
+      margin-top: 0.4rem;
+      font-size: 0.7rem;
+    }
+
+    /* Kleinere schermen: 1 kolom onder elkaar */
+    @media (max-width: 640px) {
+      .title-row {
+        margin-top: 16vh;
       }
-      .title-main {
-        margin-left: 28vw;
+
+      .hero-title {
+        max-width: 18ch;
+        font-size: 1.8rem;
+      }
+
+      .intro-layout {
+        grid-template-columns: 1fr;
+        row-gap: 2rem;
+      }
+
+      .intro-photo {
+        text-align: left;
       }
     }
   </style>
 </head>
 <body>
-  <div class="page">
+  <div class="page-inner">
 
-    <!-- TITEL -->
-    <header class="intro-hero">
-      <div class="title-wrapper">
-        <h1 class="title-main">
-          <span>Pictures from the</span>
-          <span>past few years</span>
-        </h1>
-        <p class="title-meta">Made by Berend</p>
-      </div>
-    </header>
+    <!-- TITEL + BYLINE -->
+    <div class="title-row">
+      <h1 class="hero-title">
+        Pictures from the<br>
+        past few years
+      </h1>
+      <div class="byline">Made by Berend</div>
+    </div>
 
-    <!-- TEKST + FOTO NAAST ELKAAR -->
-    <main class="intro-layout">
-      <section class="intro-text">
-      <p class="intro-text">
-  Hey, 
-  I made this site for a course in my masters to practice with ‘vibe coding’ (I’m studying Industrial Design).
-  As I was free to choose what kind of site I wanted to build to practice, I decided to make a mini website
-  around a photo album I’ve been making. It shows the best photos I’ve taken whilst traveling and living abroad.
-  Most photos were shot on a Nikon 5300 and a few with a small analog. Hope you enjoy!
-</p>
+    <!-- TEKST + FOTO -->
+    <section class="intro-layout">
+      <div class="intro-text">
+        <p>
+          Hey,<br/>
+          I made this site for a course in my masters to practice with ‘vibe coding’ (I’m studying Industrial Design).
+          As I was free to choose what kind of site I wanted build to practice, I decided to make a mini website around
+          a photo album I’ve been making. It shows the best photos I’ve taken whilst traveling and living abroad.
+          Most photos were shot on a Nikon 5300 and a few with a small analog. Hope you enjoy!
+        </p>
 
-          <p class="intro-text">
+        <p>
           <strong>Important sidenote:</strong> The album was made for full screen, to see the pictures like this
-          (can really recommend it). The next screen will walk you through the steps, only takes about 30 sec to do.
-          (Can also recommend opening it on Safari, think it works better than Chrome).
+          (can really recommend it) the next screen will walk you through the steps, only takes about 30 sec to do
+          (can also recommend opening it on Safari, think it works better than Chrome).
         </p>
 
-        <p class="intro-link">
-          To go to the photo’s, click here:
-          <a href="landscape.html">ALBUM</a>
+        <p>
+          To go to the photo’s, click here:<br>
+          <a class="album-link" href="landscape.html">ALBUM</a>
         </p>
-      </section>
+      </div>
 
       <figure class="intro-photo">
-        <!-- PAS DIT PAD AAN NAAR JOUW BESTAANDE BESTAND -->
-        <img src="images/start.jpg" alt="Kepler Track, New Zealand" />
+        <img src="images/start.jpg" alt="Kepler Track, New Zealand">
         <figcaption>
-          Kepler Track, New Zealand<br />
-          45°23'02.8"S 167°36'39.2"E
+          Kepler Track, New Zealand<br>
+          46°54′19.9″S 10°54′03.1″E
         </figcaption>
       </figure>
-    </main>
+    </section>
   </div>
 </body>
 </html>
