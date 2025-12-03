@@ -113,26 +113,27 @@
       font-size: 0.7rem;
     }
 
-    /* Kleinere schermen: 1 kolom onder elkaar */
-    @media (max-width: 640px) {
-      .title-row {
-        margin-top: 16vh;
-      }
+  /* Mobiel wél twee kolommen houden */
+@media (max-width: 640px) {
+  .title-row {
+    margin-top: 16vh;
+  }
 
-      .hero-title {
-        max-width: 18ch;
-        font-size: 1.8rem;
-      }
+  .hero-title {
+    max-width: 18ch;
+    font-size: 1.8rem;
+  }
 
-      .intro-layout {
-        grid-template-columns: 1fr;
-        row-gap: 2rem;
-      }
+  /* FOTO + TEKST blijven naast elkaar */
+  .intro-layout {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    column-gap: 6vw;
+  }
 
-      .intro-photo {
-        text-align: left;
-      }
-    }
+  .intro-photo {
+    text-align: right;
+  }
+}
   </style>
 </head>
 <body>
