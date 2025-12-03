@@ -48,12 +48,16 @@
     font-size: clamp(30px, 5.2vw, 46px);
     line-height: 1.15;
     color: var(--accent);
+    .hero-title h1 span {
+  white-space: nowrap;
   }
 
   .hero-title .byline {
     margin-top: 18px;
     font-size: 14px;
     text-align: right;
+    .hero-title h1 span {
+  white-space: nowrap; /* voorkomt dat de woorden splitsen */
   }
 
   /* TEKST + FOTO NAAST ELKAAR */
@@ -64,11 +68,13 @@
     align-items: start;
   }
 
-  .intro-text p {
-    margin: 0 0 1.1em;
-    font-size: 15px;
-    line-height: 1.6;
-  }
+.intro-text p {
+  margin: 0 0 1.1em;
+  font-size: 14px;     /* kleiner */
+  line-height: 1.55;
+  text-align: justify; /* links én rechts recht */
+  text-justify: inter-word;
+}
 
   .intro-text .album-line {
     margin-top: 2.2em;
@@ -133,10 +139,10 @@
   <main class="page">
     <!-- Titelblok -->
     <header class="hero-title">
-      <h1>
-        Pictures from the<br/>
-        past few years
-      </h1>
+    <h1>
+  <span class="line1">Pictures from the</span><br>
+  <span class="line2">past few years</span>
+</h1>
       <div class="byline">Made by Berend</div>
     </header>
 
