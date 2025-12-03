@@ -112,6 +112,26 @@
       margin-top: 0.4rem;
       font-size: 0.7rem;
     }
+    .content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.text-column {
+  width: 50%;
+}
+
+.photo-column {
+  width: 50%;
+}
+
+.photo-column img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
 
   /* Mobiel wél twee kolommen houden */
 @media (max-width: 640px) {
@@ -147,7 +167,16 @@
       </h1>
       <div class="byline">Made by Berend</div>
     </div>
+<div class="content">
+    <div class="text-column">
+        ... je tekst ...
+    </div>
 
+    <div class="photo-column">
+        <img src="start.jpg" alt="Kepler Track" />
+        <div class="caption">Kepler Track, New Zealand<br>46°54′19.9″S 10°54′03.1″E</div>
+    </div>
+</div>
     <!-- TEKST + FOTO -->
     <section class="intro-layout">
       <div class="intro-text">
