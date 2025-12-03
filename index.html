@@ -5,176 +5,171 @@
   <title>Pictures from the past few years</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-<style>
-  :root {
-    --sand: #f4ebdf;
-    --text-dark: #1c2833;
-    --accent: #1f3145;
-  }
+  <style>
+    :root {
+      --sand: #f4ebdf;
+      --ink:  #1f2933;
+    }
 
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--sand);
-    color: var(--text-dark);
-    font-family: "Georgia", "Times New Roman", serif;
-  }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--sand);
+      color: var(--ink);
+      font-family: "Georgia", "Times New Roman", serif;
+    }
 
-  body {
-    min-height: 100vh;
-  }
+    body {
+      min-height: 100vh;
+    }
 
-  .page {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 6vh 18px 10vh;
-    box-sizing: border-box;
-  }
-
-  /* TITELBLOK – verder naar beneden en iets naar rechts */
-  .hero-title {
-    /* afstand vanaf bovenkant scherm */
-    margin: 18vh 0 7vh;
-
-    /* blok zelf smal en naar rechts geschoven */
-    max-width: 60%;
-    margin-left: 25%;
-
-    text-align: left;   /* regels zelf links uitlijnen */
-  }
-
-  .hero-title h1 {
-    margin: 0;
-    font-size: clamp(30px, 5.2vw, 46px);
-    line-height: 1.15;
-    color: var(--accent);
-    .hero-title h1 span {
-  white-space: nowrap;
-  }
-
-  .hero-title .byline {
-    margin-top: 18px;
-    font-size: 14px;
-    text-align: right;
-    .hero-title h1 span {
-  white-space: nowrap; /* voorkomt dat de woorden splitsen */
-  }
-
-  /* TEKST + FOTO NAAST ELKAAR */
-  .intro-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    gap: 32px;
-    align-items: start;
-  }
-
-.intro-text p {
-  margin: 0 0 1.1em;
-  font-size: 14px;     /* kleiner */
-  line-height: 1.55;
-  text-align: justify; /* links én rechts recht */
-  text-justify: inter-word;
-}
-
-  .intro-text .album-line {
-    margin-top: 2.2em;
-  }
-
-  .album-link {
-    display: inline-block;
-    margin-top: 0.4em;
-    font-size: 20px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--accent);
-  }
-
-  .album-link:active {
-    transform: translateY(1px);
-  }
-
-  /* FOTO RECHTS */
-  .intro-photo {
-    margin: 0;
-    text-align: center;
-    font-size: 12px;
-    color: var(--text-dark);
-  }
-
-  .intro-photo img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  .intro-photo figcaption {
-    margin-top: 8px;
-    line-height: 1.4;
-  }
-
-  .coords {
-    font-size: 11px;
-  }
-
-  /* Kleine tweaks voor hele smalle schermen, maar wél naast elkaar houden */
-  @media (max-width: 600px) {
+    /* Buitenrand zodat het lijkt op je mockup */
     .page {
-      padding: 4vh 14px 8vh;
+      max-width: 900px;        /* breedte van het “canvas” */
+      margin: 0 auto;
+      padding: 9vh 10vw 9vh;   /* veel ruimte boven en zijkant */
+      box-sizing: border-box;
     }
 
-    .hero-title {
-      margin: 14vh 0 6vh;
-      max-width: 70%;
-      margin-left: 18%;
+    /* Titelblok */
+    .title-block {
+      text-align: left;
+      margin-bottom: 8vh;
+      /* iets naar rechts duwen */
+      padding-left: 8%;
     }
 
-    .intro-grid {
-      gap: 24px;
+    .title-block h1 {
+      margin: 0 0 0.8rem 0;
+      font-weight: 600;
+      line-height: 1.1;
+      font-size: 2.3rem; /* zo dat “Pictures from the” en “past few years” op 2 regels passen */
     }
-  }
-</style>
+
+    .title-block h1 span {
+      display: block;
+    }
+
+    .title-block .byline {
+      font-size: 0.9rem;
+      margin-top: 0.2rem;
+    }
+
+    /* Twee kolommen: tekst links, foto rechts */
+    .content-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 6vw;
+    }
+
+    .text-col {
+      flex: 0 0 55%;
+      font-size: 0.9rem;      /* kleiner dan eerst */
+      line-height: 1.6;
+      text-align: justify;    /* nette bloktekst links & rechts */
+    }
+
+    .text-col p {
+      margin: 0 0 1.1rem 0;
+    }
+
+    .album-link {
+      margin-top: 1.5rem;
+    }
+
+    .album-link a {
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      font-size: 1.1rem;
+    }
+
+    /* Foto rechts */
+    .photo-col {
+      flex: 0 0 45%;
+    }
+
+    .photo-frame {
+      width: 100%;
+      aspect-ratio: 3 / 4;  /* ongeveer mobiele poster-oriëntatie */
+      overflow: hidden;
+    }
+
+    .photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-caption {
+      margin-top: 0.6rem;
+      font-size: 0.7rem;
+      text-align: right;
+    }
+
+    /* Kleine schermen: nog steeds naast elkaar houden,
+       maar iets compacter */
+    @media (max-width: 600px) {
+      .page {
+        padding: 7vh 7vw 8vh;
+      }
+      .title-block {
+        padding-left: 4%;
+      }
+      .title-block h1 {
+        font-size: 2rem;
+      }
+      .content-row {
+        gap: 4vw;
+      }
+      .text-col {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <main class="page">
-    <!-- Titelblok -->
-    <header class="hero-title">
-    <h1>
-  <span class="line1">Pictures from the</span><br>
-  <span class="line2">past few years</span>
-</h1>
+  <div class="page">
+    <!-- Titelgedeelte -->
+    <header class="title-block">
+      <h1>
+        <span>Pictures from the</span>
+        <span>past few years</span>
+      </h1>
       <div class="byline">Made by Berend</div>
     </header>
 
-    <!-- Tekst links, foto rechts -->
-    <section class="intro-grid">
-      <div class="intro-text">
-        <p>
-          Hey,<br/>
-          I made this site for a course in my masters to practice with ‘vibe coding’ (I’m studying Industrial Design). As I was free to choose what kind of site I wanted build to practice, I decided to make a mini website around a photo album I’ve been making. It shows the best photos I’ve taken whilst traveling and living abroad. Most photos were shot on a Nikon 5300 and a few with a small analog. Hope you enjoy!
-        </p>
+    <!-- Twee kolommen: tekst + foto -->
+    <section class="content-row">
 
-        <p>
-          Just a quick sidenote: The album was made for full screen, to see the pictures like this (can really recommend it) the next screen will walk you through the steps, only takes about 30 sec to do (can also recommend opening it on Safari, think it works better than Chrome).
-        </p>
+      <!-- LINKERKANT: tekst -->
+      <div class="text-col">
+        <p><strong>Hey,</strong><br>
+        I made this site for a course in my masters to practice with ‘vibe coding’ (I’m studying Industrial Design). As I was free to choose what kind of site I wanted build to practice, I decided to make a mini website around a photo album I’ve been making. It shows the best photos I’ve taken whilst traveling and living abroad. Most photos were shot on a Nikon 5300 and a few with a small analog. Hope you enjoy!</p>
 
-        <p class="album-line">
-          To go to the photo’s, click here:<br/>
-          <a href="landscape.html" class="album-link">ALBUM</a>
+        <p>Just a quick sidenote: The album was made for full screen, to see the pictures like this (can really recommend it) the next screen will walk you through the steps, only takes about 30 sec to do (can also recommend opening it on Safari, think it works better than Chrome).</p>
+
+        <p>To go to the photo’s, click here:</p>
+        <p class="album-link">
+          <a href="landscape.html">ALBUM</a>
         </p>
       </div>
 
-      <figure class="intro-photo">
-        <!-- VERVANG dit pad door de echte bestandsnaam van je startfoto -->
-        <img src="images/start.jpg"
-             alt="Tent under a starry sky on the Kepler Track, New Zealand" />
+      <!-- RECHTERKANT: foto -->
+      <div class="photo-col">
+        <div class="photo-frame">
+          <!-- vervang pad als je bestand anders heet -->
+          <img src="images/startscreen-kepler.jpg" alt="Kepler Track, New Zealand">
+        </div>
+        <div class="photo-caption">
+          Kepler Track, New Zealand<br>
+          46°54'19.9&quot;N 10°54'03.1&quot;E
+        </div>
+      </div>
 
-        <figcaption>
-          Kepler Track, New Zealand<br/>
-          <span class="coords">46°54′19.9″N 10°54′03.1″E</span>
-        </figcaption>
-      </figure>
     </section>
-  </main>
+  </div>
 </body>
 </html>
