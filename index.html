@@ -5,115 +5,109 @@
   <title>Pictures from the past few years</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-  <style>
-    :root {
-      --sand: #f4ebdf;
-      --ink:  #1f2633;
-    }
+ <style>
+  :root {
+    --sand: #f4ebdf;
+    --ink:  #1f2633;
+  }
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background: var(--sand);
-      color: var(--ink);
-      font-family: "Georgia", "Times New Roman", serif;
-    }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--sand);
+    color: var(--ink);
+    font-family: "Georgia", "Times New Roman", serif;
+  }
 
-    .page-inner {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 10vh 7vw 10vh;
-    }
+  /* --- PAGINA BREEDTE FIX (belangrijk!) --- */
+  .page-inner {
+    width: 92vw;          /* veel breder dan 960px */
+    max-width: 1200px;    /* desktop limit */
+    margin: 0 auto;
+    padding: 10vh 0 10vh;
+  }
 
-    /* ─── TITEL + BYLINE ─────────────────────────────────────── */
+  /* --- TITEL --- */
+  .title-row {
+    margin-top: 20vh;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
 
-    .title-row {
-      margin-top: 20vh;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-    }
+  .hero-title {
+    font-size: clamp(30px, 5vw, 40px);
+    font-weight: 400;
+    line-height: 1.12;
+    text-align: right;
+    width: 55%;              /* match foto breedte */
+    margin: 0;
+  }
 
-    .hero-title {
-      margin: 0;
-      font-size: clamp(30px, 5vw, 40px);
-      font-weight: 400;
-      line-height: 1.12;
-      text-align: right;
-      width: 55%;                /* zelfde rechterlijn als foto */
-    }
+  .byline {
+    margin-top: .6rem;
+    text-align: right;
+    width: 55%;
+    font-size: .9rem;
+  }
 
-    .byline {
-      margin-top: 0.6rem;
-      font-size: 0.9rem;
-      text-align: right;
-      width: 55%;                /* ook uitlijnen met foto */
-    }
+  /* --- TEKST + FOTO naast elkaar --- */
+  .intro-layout {
+    margin-top: 6vh;
+    display: grid;
+    grid-template-columns: 55% 45%;
+    column-gap: 5vw;
+    align-items: flex-start;
+  }
 
-    /* ─── TEKST + FOTO ───────────────────────────────────────── */
+  .intro-text {
+    font-size: 0.93rem;
+    line-height: 1.5;
+    text-align: justify;
+  }
 
+  .intro-text p {
+    margin: 0 0 1rem;
+  }
+
+  .intro-text strong {
+    font-weight: 700;
+  }
+
+  /* --- FOTO FIX (belangrijk!) --- */
+  .intro-photo img {
+    width: 100%;     /* neemt volledige 45% kolom */
+    height: auto;    /* behoudt verhouding */
+    border-radius: 0;
+    display: block;
+  }
+
+  .intro-photo {
+    text-align: right;
+  }
+
+  .intro-photo figcaption {
+    margin-top: 0.4rem;
+    font-size: 0.7rem;
+    text-align: right;
+  }
+
+  /* MOBILE: nog steeds twee kolommen maar iets smaller rechts */
+  @media (max-width: 640px) {
     .intro-layout {
-      margin-top: 8vh;
-      display: grid;
-      grid-template-columns: 55% 45%;  /* tekst / foto */
-      column-gap: 40px;
-      align-items: flex-start;
+      grid-template-columns: 52% 48%;
+      column-gap: 4vw;
     }
-
-    .intro-text {
-      font-size: 0.93rem;
-      line-height: 1.5;
-      text-align: justify;
+    .page-inner {
+      width: 94vw;
+      padding: 6vh 0 10vh;
     }
-
-    .intro-text p {
-      margin: 0 0 0.9rem;
+    .hero-title,
+    .byline {
+      width: 100%; /* titel mag breder op mobile */
     }
-
-    .intro-text strong {
-      font-weight: 700;
-    }
-
-    .album-link {
-      display: inline-block;
-      margin-top: 0.3rem;
-      font-size: 1.05rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      text-decoration: none;
-      color: var(--ink);
-      border-bottom: 1px solid var(--ink);
-    }
-
-    .album-link:hover {
-      opacity: 0.8;
-    }
-
-    .intro-photo img {
-      width: 100%;     /* even breed als rechterkolom */
-      height: auto;
-      display: block;
-      object-fit: cover;
-    }
-
-    .intro-photo figcaption {
-      margin-top: 0.4rem;
-      font-size: 0.7rem;
-      text-align: right;
-    }
-
-    /* Mobiel: nog steeds twee kolommen, maar wat smaller gap */
-    @media (max-width: 640px) {
-      .intro-layout {
-        grid-template-columns: 1fr 1fr;
-        column-gap: 24px;
-      }
-      .hero-title, .byline {
-        width: 100%;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
   <div class="page-inner">
