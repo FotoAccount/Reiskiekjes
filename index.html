@@ -20,12 +20,11 @@
   }
 
   /* --- PAGINA BREEDTE FIX (belangrijk!) --- */
-  .page-inner {
-    width: 92vw;          /* veel breder dan 960px */
-    max-width: 1200px;    /* desktop limit */
-    margin: 0 auto;
-    padding: 10vh 0 10vh;
-  }
+.page-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 10vh 5vw 10vh; /* iets minder zij-marge */
+}
 
   /* --- TITEL --- */
   .title-row {
@@ -52,13 +51,13 @@
   }
 
   /* --- TEKST + FOTO naast elkaar --- */
-  .intro-layout {
-    margin-top: 6vh;
-    display: grid;
-    grid-template-columns: 55% 45%;
-    column-gap: 5vw;
-    align-items: flex-start;
-  }
+.intro-layout {
+  margin-top: 8vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 4vw; /* minder ruimte tussen tekst en foto */
+  align-items: flex-start;
+}
 
   .intro-text {
     font-size: 0.93rem;
@@ -75,12 +74,14 @@
   }
 
   /* --- FOTO FIX (belangrijk!) --- */
-  .intro-photo img {
-    width: 100%;     /* neemt volledige 45% kolom */
-    height: auto;    /* behoudt verhouding */
-    border-radius: 0;
-    display: block;
-  }
+.intro-photo img {
+  width: 120%;         /* bewust groter dan de kolom */
+  max-width: none;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  transform: translateX(8%); /* iets naar rechts duwen, zoals in de mock-up */
+}
 
   .intro-photo {
     text-align: right;
