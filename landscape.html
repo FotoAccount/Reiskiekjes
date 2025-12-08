@@ -493,94 +493,109 @@
       updateTransform();
     }, { passive: false });
 
-    // touchend
-    stage.addEventListener("touchend", e => {
-      if (isInThumbOverlay(e)) return;
+   // touchend
+stage.addEventListener("touchend", e => {
+  if (isInThumbOverlay(e)) return;
 
-      const t = e.changedTouches[0];
-      const now = Date.now();
+  const t = e.changedTouches[0];
+  const now = Date.now();
 
-      const dxTap = t.clientX - lastTapX;
-      const dyTap = t.clientY - lastTapY;
-      const dtTap = now - lastTapTime;
+  // Double-tap detectie (zoom)
+  const dxTap = t.clientX - lastTapX;
+  const dyTap = t.clientY - lastTapY;
+  const dtTap = now - lastTapTime;
 
-      const doubleTap = dtTap < 300 && Math.abs(dxTap) < 20 && Math.abs(dyTap) < 20;
+  const doubleTap = dtTap < 300 && Math.abs(dxTap) < 20 && Math.abs(dyTap) < 20;
 
-      if (doubleTap) {
-        if (!zoomActive) {
-          // Zoom IN op tikpositie
-          zoomActive = true;
-          img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
-          zoom = ZOOM_FACTOR;
-          const w = window.innerWidth;
-          const h = window.innerHeight;
-          const cx = t.clientX - w / 2;
-          const cy = t.clientY - h / 2;
-          panX = -(zoom - 1) * cx;
-          panY = -(zoom - 1) * cy;
-          updateTransform();
-          setTimeout(() => { img.style.transition = 'none'; }, ZOOM_ANIM_MS);
-        } else {
-          // Smooth uitzoomen
-          img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
-          zoom = 1;
-          panX = 0;
-          panY = 0;
-          updateTransform();
-          setTimeout(() => {
-            img.style.transition = 'none';
-            zoomActive = false;
-          }, ZOOM_ANIM_MS);
-        }
-        lastTapTime = 0;
-        return;
-      } else {
-        lastTapTime = now;
-        lastTapX = t.clientX;
-        lastTapY = t.clientY;
-      }
+  if (doubleTap) {
+    if (!zoomActive) {
+      // Zoom IN op tikpositie
+      zoomActive = true;
+      img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
+      zoom = ZOOM_FACTOR;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const cx = t.clientX - w / 2;
+      const cy = t.clientY - h / 2;
+      panX = -(zoom - 1) * cx;
+      panY = -(zoom - 1) * cy;
+      updateTransform();
+      setTimeout(() => { img.style.transition = 'none'; }, ZOOM_ANIM_MS);
+    } else {
+      // Smooth uitzoomen
+      img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
+      zoom = 1;
+      panX = 0;
+      panY = 0;
+      updateTransform();
+      setTimeout(() => {
+        img.style.transition = 'none';
+        zoomActive = false;
+      }, ZOOM_ANIM_MS);
+    }
+    lastTapTime = 0;
+    return;
+  } else {
+    lastTapTime = now;
+    lastTapX = t.clientX;
+    lastTapY = t.clientY;
+  }
 
-      if (zoomActive) return;
+  if (zoomActive) return;
 
-      const dx = t.clientX - sx;
-      const dy = t.clientY - sy;
-      const dt = now - t0;
-      const isHorizontal = Math.abs(dx) > Math.abs(dy);
-      const isVertical   = !isHorizontal;
+  const dx = t.clientX - sx;
+  const dy = t.clientY - sy;
+  const dt = now - t0;
+  const isHorizontal = Math.abs(dx) > Math.abs(dy);
+  const isVertical   = !isHorizontal;
 
-      /* ===== NIEUW: eerst overlay/caption sluiten, daarna pas andere acties ===== */
+  /* ========= ALS MENU OPEN IS ========= */
+  if (thumbsVisible) {
+    // Horizontale swipe → volgende/vorige foto + menu weg
+    if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
+      hideThumbs();
+      dx < 0 ? next() : prev();
+    }
+    // Verticale swipe → alleen menu sluiten
+    else if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
+      hideThumbs();
+    }
+    return;
+  }
 
-      if (thumbsVisible) {
-        if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
-          hideThumbs();
-        }
-        return;
-      }
+  /* ========= ALS CAPTION OPEN IS ========= */
+  if (captionIsVisible()) {
+    // Horizontale swipe → volgende/vorige foto + caption weg
+    if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
+      hideCaption();
+      dx < 0 ? next() : prev();
+    }
+    // Verticale swipe → alleen caption sluiten
+    else if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
+      hideCaption();
+    }
+    return;
+  }
 
-      if (captionIsVisible()) {
-        if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
-          hideCaption();
-        }
-        return;
-      }
+  /* ========= NORMALE CASE (geen menu, geen caption) ========= */
 
-      // Verticaal omlaag → thumbnails tonen (overal op het scherm)
-      if (isVertical && dy > SWIPE_Y && dt < 800) {
-        showThumbs();
-        return;
-      }
+  // Verticaal omlaag → thumbnails tonen (overal op het scherm)
+  if (isVertical && dy > SWIPE_Y && dt < 800) {
+    showThumbs();
+    return;
+  }
 
-      // Horizontale swipe → foto wisselen
-      if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
-        dx < 0 ? next() : prev();
-        return;
-      }
+  // Horizontale swipe → foto wisselen
+  if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
+    dx < 0 ? next() : prev();
+    return;
+  }
 
-      // Verticaal → caption aan (alleen omhoog, want omlaag is nu menu)
-      if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
-        if (dy < 0) showCaption();
-      }
-    }, { passive: true });
+  // Verticaal → caption aan (alleen omhoog, want omlaag is menu)
+  if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
+    if (dy < 0) showCaption();
+  }
+}, { passive: true });
 
     // Desktop: pijltjes + 'i' + 'z'
     document.addEventListener("keydown", e => {
