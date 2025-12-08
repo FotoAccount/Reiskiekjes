@@ -74,7 +74,6 @@
       transform: translate(0, 0);
     }
 
-    /* Mee-schuiven met de foto bij swipe */
     #caption.slide-left,
     #caption.slide-right {
       opacity: 0;
@@ -173,10 +172,11 @@
        DATA
     ==========================*/
 
-    // 46 foto's: L0 t/m L45
-    const images = Array.from({ length: 46 }, (_, n) => `images/L${n}.jpg`);
-    const thumbs = images.slice();
+    // NU: 54 foto's → A0 t/m A53, en aparte kleine thumbs AC0 t/m AC53
+    const images = Array.from({ length: 54 }, (_, n) => `images/A${n}.jpg`);
+    const thumbs = Array.from({ length: 54 }, (_, n) => `images/AC${n}.jpg`);
 
+    // meta mag gewoon langer zijn dan gevuld; lege entries krijgen geen caption
     const meta = Array.from({ length: images.length }, () => ({ country: "", place: "" }));
 
     meta[1]  = { country: "New Zealand", place: "Tongariro National Park" };
@@ -248,6 +248,8 @@
     }
 
     function showCaption() {
+      // NIEUW: caption alleen tonen als thumbOverlay NIET open is
+      if (thumbsVisible) return;
       const m = meta[i] || { country: "", place: "" };
       if (!m.country && !m.place) return;
       caption.classList.remove('slide-left', 'slide-right');
@@ -259,7 +261,13 @@
       caption.classList.remove("show", "slide-left", "slide-right");
     }
 
+    function captionIsVisible() {
+      return caption.classList.contains("show");
+    }
+
     function showThumbs() {
+      // NIEUW: thumbs alleen tonen als caption NIET open is
+      if (captionIsVisible()) return;
       thumbsVisible = true;
       thumbOverlay.classList.add('show');
       updateActiveThumb(i);
@@ -275,7 +283,7 @@
       thumbStrip.innerHTML = "";
       images.forEach((src, idx) => {
         const t = document.createElement("img");
-        t.src = thumbs[idx];
+        t.src = thumbs[idx]; // kleine versie
         t.dataset.index = idx;
         t.addEventListener("click", ev => {
           ev.stopPropagation();
@@ -533,12 +541,24 @@
       const isHorizontal = Math.abs(dx) > Math.abs(dy);
       const isVertical   = !isHorizontal;
 
+      /* ===== NIEUW: eerst overlay/caption sluiten, daarna pas andere acties ===== */
+
       if (thumbsVisible) {
+        if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
+          hideThumbs();
+        }
+        return;
+      }
+
+      if (captionIsVisible()) {
+        if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
+          hideCaption();
+        }
         return;
       }
 
       // Verticaal omlaag → thumbnails tonen (overal op het scherm)
-      if (isVertical && dy > SWIPE_Y && dt < 800 && !thumbsVisible) {
+      if (isVertical && dy > SWIPE_Y && dt < 800) {
         showThumbs();
         return;
       }
@@ -549,9 +569,9 @@
         return;
       }
 
-      // Verticaal → caption aan/uit
+      // Verticaal → caption aan (alleen omhoog, want omlaag is nu menu)
       if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
-        if (dy < 0) showCaption(); else hideCaption();
+        if (dy < 0) showCaption();
       }
     }, { passive: true });
 
