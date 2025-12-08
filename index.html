@@ -73,20 +73,30 @@ grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
     font-weight: 700;
   }
 
-/* --- TEKST + FOTO naast elkaar --- */
 .intro-layout {
   margin-top: 8vh;
   display: grid;
 
-  /* FOTO 1.4x groter dan tekst */
-  grid-template-columns: 1fr 1.4fr;   /* <-- DIT maakt de foto groter */
+  /* JOUW EXACTE VERHOUDINGEN */
+  grid-template-columns: 3% 45% 4% 45% 3%;
 
-  column-gap: 2vw;
   align-items: flex-start;
 }
 
+.intro-text {
+  grid-column: 2;       /* tekst in kolom 2 */
+  font-size: 0.93rem;
+  line-height: 1.5;
+  text-align: justify;
+}
+
+.intro-photo {
+  grid-column: 4;       /* foto in kolom 4 */
+  text-align: right;
+}
+
 .intro-photo img {
-  width: 100%;
+  width: 100%;          /* foto vult de 45% kolom volledig */
   height: auto;
   display: block;
   object-fit: cover;
