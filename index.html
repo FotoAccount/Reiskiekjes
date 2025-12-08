@@ -55,7 +55,7 @@
   margin-top: 8vh;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  column-gap: 4vw; /* minder ruimte tussen tekst en foto */
+  column-gap: 2vw; /* minder ruimte tussen tekst en foto */
   align-items: flex-start;
 }
 
@@ -75,12 +75,11 @@
 
   /* --- FOTO FIX (belangrijk!) --- */
 .intro-photo img {
-  width: 120%;         /* bewust groter dan de kolom */
-  max-width: none;
+  width: 115%;           /* foto wordt breder */
   height: auto;
   display: block;
   object-fit: cover;
-  transform: translateX(8%); /* iets naar rechts duwen, zoals in de mock-up */
+  transform: translateX(-10%); /* beweegt richting tekst */
 }
 
   .intro-photo {
