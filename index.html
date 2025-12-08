@@ -5,121 +5,123 @@
   <title>Pictures from the past few years</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
- <style>
-  :root {
-    --sand: #f4ebdf;
-    --ink:  #1f2633;
-  }
+  <style>
+    :root {
+      --sand: #f4ebdf;
+      --ink:  #1f2633;
+    }
 
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--sand);
-    color: var(--ink);
-    font-family: "Georgia", "Times New Roman", serif;
-  }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--sand);
+      color: var(--ink);
+      font-family: "Georgia", "Times New Roman", serif;
+    }
 
-  /* --- PAGINA BREEDTE FIX (belangrijk!) --- */
-.page-inner {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 10vh 5vw 10vh; /* iets minder zij-marge */
-}
+    /* Buitenste marges: ~3% links + rechts */
+    .page-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 10vh 3vw 10vh;
+    }
 
-  /* --- TITEL --- */
-  .title-row {
-    margin-top: 20vh;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-  }
+    /* ── Titelblok ─────────────────────────── */
+    .title-row {
+      margin-top: 18vh;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
 
-  .hero-title {
-    font-size: clamp(30px, 5vw, 40px);
-    font-weight: 400;
-    line-height: 1.12;
-    text-align: right;
-    width: 55%;              /* match foto breedte */
-    margin: 0;
-  }
+    .hero-title {
+      font-size: clamp(30px, 5vw, 40px);
+      font-weight: 400;
+      line-height: 1.12;
+      text-align: right;
+      width: 55%;       /* grofweg zelfde breedte als fotokolom */
+      margin: 0;
+    }
 
-  .byline {
-    margin-top: .6rem;
-    text-align: right;
-    width: 55%;
-    font-size: .9rem;
-  }
+    .byline {
+      margin-top: 0.6rem;
+      text-align: right;
+      width: 55%;
+      font-size: 0.9rem;
+    }
 
-  /* --- TEKST + FOTO naast elkaar --- */
-.intro-layout {
-  margin-top: 8vh;
-  display: grid;
-grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  column-gap: 2vw; /* minder ruimte tussen tekst en foto */
-  align-items: flex-start;
-}
+    /* ── Tekst + foto naast elkaar ─────────── */
+    .intro-layout {
+      margin-top: 8vh;
+      display: grid;
+      /* 45% tekst – 4vw gap – 45% foto → rest is buitenmarge van .page-inner */
+      grid-template-columns: 45% 45%;
+      column-gap: 4vw;
+      align-items: flex-start;
+    }
 
-  .intro-text {
-    font-size: 0.93rem;
-    line-height: 1.5;
-    text-align: justify;
-  }
+    .intro-text {
+      font-size: 0.93rem;
+      line-height: 1.5;
+      text-align: justify;
+    }
 
-  .intro-text p {
-    margin: 0 0 1rem;
-  }
+    .intro-text p {
+      margin: 0 0 1rem;
+    }
 
-  .intro-text strong {
-    font-weight: 700;
-  }
+    .intro-text strong {
+      font-weight: 700;
+    }
 
-.intro-layout {
-  margin-top: 8vh;
-  display: grid;
+    .album-link {
+      display: inline-block;
+      margin-top: 0.3rem;
+      font-size: 1.05rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--ink);
+      border-bottom: 1px solid var(--ink);
+    }
 
-  /* JOUW EXACTE VERHOUDINGEN */
-  grid-template-columns: 3% 45% 4% 45% 3%;
+    .album-link:hover {
+      opacity: 0.8;
+    }
 
-  align-items: flex-start;
-}
+    /* Foto kolom */
+    .intro-photo {
+      text-align: right;
+    }
 
-.intro-text {
-  grid-column: 2;       /* tekst in kolom 2 */
-  font-size: 0.93rem;
-  line-height: 1.5;
-  text-align: justify;
-}
+    .intro-photo img {
+      width: 100%;      /* vult hele 45%-kolom */
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
 
-.intro-photo {
-  grid-column: 4;       /* foto in kolom 4 */
-  text-align: right;
-}
+    .intro-photo figcaption {
+      margin-top: 0.4rem;
+      font-size: 0.7rem;
+      text-align: right;
+    }
 
-.intro-photo img {
-  width: 100%;          /* foto vult de 45% kolom volledig */
-  height: auto;
-  display: block;
-  object-fit: cover;
-}
-
-/* MOBILE FIX */
-@media (max-width: 640px) {
-  .intro-layout {
-    grid-template-columns: 0.8fr 1.4fr;   /* nog steeds foto groter */
-    column-gap: 3vw;
-  }
-
-  .page-inner {
-    width: 94vw;
-    padding: 6vh 0 10vh;
-  }
-
-  .hero-title,
-  .byline {
-    width: 100%;
-  }
-}
-</style>
+    /* Mobile: zelfde verdeling houden, alleen iets minder top-margin */
+    @media (max-width: 640px) {
+      .title-row {
+        margin-top: 14vh;
+      }
+      .hero-title,
+      .byline {
+        width: 100%;   /* titel mag breder op kleine schermen */
+      }
+      .intro-layout {
+        grid-template-columns: 45% 45%;
+        column-gap: 4vw;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="page-inner">
