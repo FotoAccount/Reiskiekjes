@@ -54,7 +54,7 @@
 .intro-layout {
   margin-top: 8vh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   column-gap: 2vw; /* minder ruimte tussen tekst en foto */
   align-items: flex-start;
 }
@@ -75,11 +75,10 @@
 
   /* --- FOTO FIX (belangrijk!) --- */
 .intro-photo img {
-  width: 115%;           /* foto wordt breder */
+  width: 100%;
   height: auto;
   display: block;
   object-fit: cover;
-  transform: translateX(-10%); /* beweegt richting tekst */
 }
 
   .intro-photo {
@@ -92,12 +91,12 @@
     text-align: right;
   }
 
-  /* MOBILE: nog steeds twee kolommen maar iets smaller rechts */
-  @media (max-width: 640px) {
-    .intro-layout {
-      grid-template-columns: 52% 48%;
-      column-gap: 4vw;
-    }
+@media (max-width: 640px) {
+  .intro-layout {
+    grid-template-columns: 45% 55%; /* FOTO groter */
+    column-gap: 2vw; /* minder ruimte tussen tekst & foto */
+  }
+}
     .page-inner {
       width: 94vw;
       padding: 6vh 0 10vh;
