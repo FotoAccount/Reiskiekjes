@@ -233,7 +233,7 @@
        ELEMENTEN & STATE
     ========================== */
 
-    let i = 0;
+   let i = 0;
     const stage        = document.getElementById("stage");
     const img          = document.getElementById("img");
     const imgNext      = document.getElementById("imgNext");
@@ -244,6 +244,33 @@
     const thumbStrip   = document.getElementById("thumbStrip");
 
     let thumbsVisible = false;
+
+    /* =========================
+       PRELOAD CACHE
+    ========================== */
+
+    const imageCache = new Map();
+
+    function preloadImage(src) {
+      if (imageCache.has(src)) return imageCache.get(src);
+
+      const im = new Image();
+      im.src = src;
+      imageCache.set(src, im);
+      return im;
+    }
+
+    function preloadAround(index) {
+      const total = slides.length;
+      const ids = [
+        index,
+        (index + 1) % total,
+        (index + 2) % total,
+        (index - 1 + total) % total
+      ];
+
+      ids.forEach(idx => preloadImage(slides[idx].img));
+    }
 
     function setCaption(idx) {
       const m = slides[idx] || { country: "", place: "" };
@@ -349,6 +376,7 @@
 
     /* --------- Eerste foto ---------- */
     img.src = slides[i].img;
+    preloadAround(i);
 
     const DURATION = 700;
     let animating = false;
@@ -371,55 +399,58 @@
       }
 
       const nextSrc = slides[nextIndex].img;
-      const preImg = new Image();
-      preImg.src = nextSrc;
+      const preImg = preloadImage(nextSrc);
 
-      preImg.onload = () => {
-        imgNext.src = nextSrc;
-        imgNext.style.transition = "none";
-        img.style.transition = "none";
-        imgNext.style.transform = `translateX(${direction * 100}%)`;
-
-        requestAnimationFrame(() => {
-          imgNext.style.transition = `transform ${DURATION}ms ease`;
-          img.style.transition = `transform ${DURATION}ms ease`;
-          img.style.transform = `translateX(${-direction * 100}%)`;
-          imgNext.style.transform = "translateX(0)";
-        });
-
-        setTimeout(() => {
-          img.src = nextSrc;
-          img.style.transition = "none";
-          img.style.transform = "translateX(0)";
-          imgNext.style.transition = "none";
-          imgNext.style.transform = "translateX(100%)";
-          i = nextIndex;
+      if (preImg.complete) {
+        runTransition(nextIndex, direction, nextSrc, captionSliding);
+      } else {
+        preImg.onload = () => runTransition(nextIndex, direction, nextSrc, captionSliding);
+        preImg.onerror = () => {
+          console.warn("Kon afbeelding niet laden:", nextSrc);
           animating = false;
           stage.classList.remove("anim");
-          resetZoom();
-
           if (captionSliding) {
             caption.classList.remove('slide-left', 'slide-right');
             caption.style.transition = '';
           }
+        };
+      }
+    }
 
-          updateActiveThumb(i);
-          if (thumbsVisible) scrollThumbsTo(i);
+    function runTransition(nextIndex, direction, nextSrc, captionSliding) {
+      imgNext.src = nextSrc;
+      imgNext.style.transition = "none";
+      img.style.transition = "none";
+      imgNext.style.transform = `translateX(${direction * 100}%)`;
 
-          const preloadNext = new Image();
-          preloadNext.src = slides[(nextIndex + 1) % slides.length].img;
-        }, DURATION);
-      };
+      requestAnimationFrame(() => {
+        imgNext.style.transition = `transform ${DURATION}ms ease`;
+        img.style.transition = `transform ${DURATION}ms ease`;
+        img.style.transform = `translateX(${-direction * 100}%)`;
+        imgNext.style.transform = "translateX(0)";
+      });
 
-      preImg.onerror = () => {
-        console.warn("Kon afbeelding niet laden:", nextSrc);
+      setTimeout(() => {
+        img.src = nextSrc;
+        img.style.transition = "none";
+        img.style.transform = "translateX(0)";
+        imgNext.style.transition = "none";
+        imgNext.style.transform = "translateX(100%)";
+        i = nextIndex;
         animating = false;
         stage.classList.remove("anim");
+        resetZoom();
+
         if (captionSliding) {
           caption.classList.remove('slide-left', 'slide-right');
           caption.style.transition = '';
         }
-      };
+
+        updateActiveThumb(i);
+        if (thumbsVisible) scrollThumbsTo(i);
+
+        preloadAround(nextIndex);
+      }, DURATION);
     }
 
     function next() { slideTo((i + 1) % slides.length, 1); }
