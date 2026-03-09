@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Landscape</title>
 
-  <!-- PWA -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -55,7 +54,6 @@
       box-shadow: 0 0 0 var(--divider) #000;
     }
 
-    /* Caption onder-links */
     #caption {
       position: absolute;
       left: 5vw;
@@ -100,7 +98,6 @@
       opacity: 0.9;
     }
 
-    /* Thumbnail-overlay bovenin */
     #thumbOverlay {
       position: fixed;
       top: 0;
@@ -155,13 +152,11 @@
     <img id="img" alt="Landscape" />
     <img id="imgNext" alt="Volgende" />
 
-    <!-- Caption -->
     <div id="caption" aria-live="polite">
       <div class="place"></div>
       <div class="country"></div>
     </div>
 
-    <!-- Thumbnail-balk -->
     <div id="thumbOverlay">
       <div id="thumbStrip"></div>
     </div>
@@ -170,71 +165,73 @@
   <script>
     /* =========================
        DATA
-    ==========================*/
+    ========================== */
 
-    // NU: 54 foto's → A0 t/m A53, en aparte kleine thumbs AC0 t/m AC53
-    const images = Array.from({ length: 54 }, (_, n) => `images/A${n}.jpg`);
-    const thumbs = Array.from({ length: 54 }, (_, n) => `images/AC${n}.jpg`);
+    const slides = [
+      { img: "images/A0.jpg",  thumb: "images/A0.jpg",   place: "",                                  country: "" },
 
-    // meta mag gewoon langer zijn dan gevuld; lege entries krijgen geen caption
-       const meta = Array.from({ length: images.length }, () => ({ country: "", place: "" }));
+      { img: "images/A1.jpg",  thumb: "images/AC1.jpg",  place: "Tongariro National Park",           country: "New Zealand" },
+      { img: "images/A2.jpg",  thumb: "images/AC2.jpg",  place: "Mount John",                        country: "New Zealand" },
+      { img: "images/A3.jpg",  thumb: "images/AC3.jpg",  place: "Angkor Wat",                        country: "Cambodia" },
+      { img: "images/A4.jpg",  thumb: "images/AC4.jpg",  place: "Wildspitze Glacier",                country: "Austria" },
+      { img: "images/A5.jpg",  thumb: "images/AC5.jpg",  place: "Whitehaven Beach",                  country: "Australia" },
+      { img: "images/A6.jpg",  thumb: "images/AC6.jpg",  place: "Puncak Brinchang Barat",            country: "Malaysia" },
+      { img: "images/A7.jpg",  thumb: "images/AC7.jpg",  place: "Noosa National Park",               country: "Australia" },
+      { img: "images/A8.jpg",  thumb: "images/AC8.jpg",  place: "Flight: LAX - AMS",                 country: "Greenland" },
+      { img: "images/A9.jpg",  thumb: "images/AC9.jpg",  place: "Great Barrier Reef",                country: "Australia" },
+      { img: "images/A10.jpg", thumb: "images/AC10.jpg", place: "Flight: LIM – AMS",                 country: "Peru" },
+      { img: "images/A11.jpg", thumb: "images/AC11.jpg", place: "Refuge du Roc",                     country: "France" },
+      { img: "images/A11_1.jpg", thumb: "images/AC11_1.jpg", place: "Pitztaler Glacier",             country: "Austria" },
+      { img: "images/A12.jpg", thumb: "images/AC12.jpg", place: "Loh Lana Bay",                      country: "Thailand" },
+      { img: "images/A13.jpg", thumb: "images/AC13.jpg", place: "Rocinha",                           country: "Brazil" },
+      { img: "images/A14.jpg", thumb: "images/AC14.jpg", place: "Abu Dhabi",                         country: "United Arab Emirates" },
+      { img: "images/A15.jpg", thumb: "images/AC15.jpg", place: "Utrecht",                           country: "The Netherlands" },
+      { img: "images/A16.jpg", thumb: "images/AC16.jpg", place: "San Fruttuoso",                     country: "Italy" },
+      { img: "images/A17.jpg", thumb: "images/AC17.jpg", place: "Cameron Highlands",                 country: "Malaysia" },
+      { img: "images/A18.jpg", thumb: "images/AC18.jpg", place: "Cameron Highlands",                 country: "Malaysia" },
+      { img: "images/A19.jpg", thumb: "images/AC19.jpg", place: "Mount Cook Glacier",                country: "New Zealand" },
+      { img: "images/A20.jpg", thumb: "images/AC20.jpg", place: "Mount Victoria",                    country: "New Zealand" },
+      { img: "images/A21.jpg", thumb: "images/AC21.jpg", place: "Pitztaler Glacier – Ties",          country: "Austria" },
+      { img: "images/A22.jpg", thumb: "images/AC22.jpg", place: "Ferry: Wellington - Picton",        country: "New Zealand" },
+      { img: "images/A23.jpg", thumb: "images/AC23.jpg", place: "Zillie Falls",                      country: "Australia" },
+      { img: "images/A24.jpg", thumb: "images/AC24.jpg", place: "Queenstown",                        country: "New Zealand" },
+      { img: "images/A25.jpg", thumb: "images/AC25.jpg", place: "K’gari",                            country: "Australia" },
+      { img: "images/A26.jpg", thumb: "images/AC26.jpg", place: "La Motte",                          country: "France" },
+      { img: "images/A27.jpg", thumb: "images/AC27.jpg", place: "Wildspitze Glacier",                country: "Austria" },
+      { img: "images/A28.jpg", thumb: "images/AC28.jpg", place: "Cristo Redentor",                   country: "Brazil" },
+      { img: "images/A29.jpg", thumb: "images/AC29.jpg", place: "Rub’ al Khali",                     country: "United Arab Emirates" },
+      { img: "images/A30.jpg", thumb: "images/AC30.jpg", place: "Machu Picchu",                      country: "Peru" },
+      { img: "images/A31.jpg", thumb: "images/AC31.jpg", place: "Florance",                          country: "Italy" },
+      { img: "images/A32.jpg", thumb: "images/AC32.jpg", place: "Flight: DXB – AMS",                 country: "United Arab Emirates" },
+      { img: "images/A33.jpg", thumb: "images/AC33.jpg", place: "Kepler Track",                      country: "New Zealand" },
+      { img: "images/A34.jpg", thumb: "images/AC34.jpg", place: "Roy’s Peak",                        country: "New Zealand" },
+      { img: "images/A35.jpg", thumb: "images/AC35.jpg", place: "Milla Milla Falls",                 country: "Australia" },
+      { img: "images/A36.jpg", thumb: "images/AC36.jpg", place: "Khao Sok",                          country: "Thailand" },
+      { img: "images/A37.jpg", thumb: "images/AC37.jpg", place: "Batu Caves",                        country: "Malaysia" },
+      { img: "images/A37_1.jpg", thumb: "images/AC37_1.jpg", place: "Sydney",                        country: "Australia" },
+      { img: "images/A37_2.jpg", thumb: "images/AC37_2.jpg", place: "Utrecht",                       country: "The Netherlands" },
+      { img: "images/A38.jpg", thumb: "images/AC38.jpg", place: "Barra da Tijuca",                   country: "Brazil" },
+      { img: "images/A39.jpg", thumb: "images/AC39.jpg", place: "Ta Prohm Temple",                   country: "Cambodia" },
+      { img: "images/A40.jpg", thumb: "images/AC40.jpg", place: "Ipanema Beach",                     country: "Brazil" },
+      { img: "images/A41.jpg", thumb: "images/AC41.jpg", place: "Pedra do Arpoador",                 country: "Brazil" },
+      { img: "images/A42.jpg", thumb: "images/AC42.jpg", place: "Flight: GIG – AMS",                 country: "The Netherlands" },
+      { img: "images/A43.jpg", thumb: "images/AC43.jpg", place: "Roy’s Peak",                        country: "New Zealand" },
+      { img: "images/A44.jpg", thumb: "images/AC44.jpg", place: "Hinterer Brunnenkogel",             country: "Austria" },
+      { img: "images/A45.jpg", thumb: "images/AC45.jpg", place: "Pitzaler Glacier",                  country: "Austria (Made by Alina)" },
+      { img: "images/A46.jpg", thumb: "images/AC46.jpg", place: "Alex absolutely eating shit on this landing", country: "Austria" },
+      { img: "images/A47.jpg", thumb: "images/AC47.jpg", place: "Joshua Tree National Park",         country: "United States of America" },
+      { img: "images/A48.jpg", thumb: "images/AC48.jpg", place: "Nui Beach",                         country: "Thailand" },
+      { img: "images/A49.jpg", thumb: "images/AC49.jpg", place: "Rocinha",                           country: "Brazil" },
+      { img: "images/A50.jpg", thumb: "images/AC50.jpg", place: "Cameron Highlands",                 country: "Malaysia" },
+      { img: "images/A50_1.jpg", thumb: "images/AC50_1.jpg", place: "Bayon Temple",                  country: "Cambodia" },
+      { img: "images/A51.jpg", thumb: "images/AC51.jpg", place: "Padang",                            country: "Singapore" },
+      { img: "images/A52.jpg", thumb: "images/AC52.jpg", place: "The Grand Palace",                  country: "Thailand" },
+      { img: "images/A53.jpg", thumb: "images/AC53.jpg", place: "Rio de Janeiro",                    country: "Brazil" }
+    ];
 
-    meta[1]  = { place: "Tongariro National Park",        country: "New Zealand" };
-    meta[2]  = { place: "Mount John",                     country: "New Zealand" };
-    meta[3]  = { place: "Angkor Wat",                     country: "Cambodia" };
-    meta[4]  = { place: "Wildspitze Glacier",             country: "Austria" };
-    meta[5]  = { place: "Whitehaven Beach",               country: "Australia" };
-    meta[6]  = { place: "Puncak Brinchang Barat",         country: "Malaysia" };
-    meta[7]  = { place: "Noosa National Park",            country: "Australia" };
-    meta[8]  = { place: "Flight: LAX - AMS",              country: "Greenland" };
-    meta[9]  = { place: "Great Barrier Reef",             country: "Australia" };
-    meta[10] = { place: "Flight: LIM – AMS",              country: "Peru" };
-    meta[11] = { place: "Refuge du Roc",                  country: "France" };
-    meta[12] = { place: "Loh Lana Bay",                   country: "Thailand" };
-    meta[13] = { place: "Rocinha",                        country: "Brazil" };
-    meta[14] = { place: "Abu Dhabi",                      country: "United Arab Emirates" };
-    meta[15] = { place: "Utrecht",                        country: "The Netherlands" };
-    meta[16] = { place: "San Fruttuoso",                  country: "Italy" };
-    meta[17] = { place: "Cameron Highlands",              country: "Malaysia" };
-    meta[18] = { place: "Cameron Highlands",              country: "Malaysia" };
-    meta[19] = { place: "Mount Cook Glacier",             country: "New Zealand" };
-    meta[20] = { place: "Mount Victoria",                 country: "New Zealand" };
-    meta[21] = { place: "Pitztaler Glacier – Ties",       country: "Austria" };
-    meta[22] = { place: "Ferry: Wellington - Picton",     country: "New Zealand" };
-    meta[23] = { place: "Zillie Falls",                   country: "Australia" };
-    meta[24] = { place: "Queenstown",                     country: "New Zealand" };
-    meta[25] = { place: "K’gari",                         country: "Australia" };
-    meta[26] = { place: "La Motte",                       country: "France" };
-    meta[27] = { place: "Wildspitze Glacier",             country: "Austria" };
-    meta[28] = { place: "Cristo Redentor",                country: "Brazil" };
-    meta[29] = { place: "Rub’ al Khali",                  country: "United Arab Emirates" };
-    meta[30] = { place: "Machu Picchu",                   country: "Peru" };
-    meta[31] = { place: "Florance",                       country: "Italy" };
-    meta[32] = { place: "Flight: DXB – AMS",              country: "United Arab Emirates" };
-    meta[33] = { place: "Kepler Track",                   country: "New Zealand" };
-    meta[34] = { place: "Roy’s Peak",                     country: "New Zealand" };
-    meta[35] = { place: "Milla Milla Falls",              country: "Australia" };
-    meta[36] = { place: "Khao Sok",                       country: "Thailand" };
-    meta[37] = { place: "Batu Caves",                     country: "Malaysia" };
-    meta[38] = { place: "Barra da Tijuca",                country: "Brazil" };
-    meta[39] = { place: "Ta Prohm Temple",                country: "Cambodia" };
-    meta[40] = { place: "Ipanema Beach",                  country: "Brazil" };
-    meta[41] = { place: "Pedra do Arpoador",              country: "Brazil" };
-    meta[42] = { place: "Flight: GIG – AMS",              country: "The Netherlands" };
-    meta[43] = { place: "Roy’s Peak",                     country: "New Zealand" };
-    meta[44] = { place: "Hinterer Brunnenkogel",          country: "Austria" };
-    meta[45] = { place: "Pitzaler Glacier",               country: "Austria (Made by Alina)" };
-    meta[46] = { place: "Alex absolutely eating shit on this landing", country: "Austria" };
-    meta[47] = { place: "Joshua Tree National Park",      country: "United States of America" };
-    meta[48] = { place: "Nui Beach",                      country: "Thailand" };
-    meta[49] = { place: "Rocinha",                        country: "Brazil" };
-    meta[50] = { place: "Cameron Highlands",              country: "Malaysia" };
-    meta[51] = { place: "Padang",                         country: "Singapore" };
-    meta[52] = { place: "The Grand Palace",               country: "Thailand" };
-    meta[53] = { place: "Rio de Janeiro",                 country: "Brazil" };
     /* =========================
        ELEMENTEN & STATE
-    ==========================*/
+    ========================== */
 
     let i = 0;
     const stage        = document.getElementById("stage");
@@ -249,15 +246,14 @@
     let thumbsVisible = false;
 
     function setCaption(idx) {
-      const m = meta[idx] || { country: "", place: "" };
+      const m = slides[idx] || { country: "", place: "" };
       capPlace.textContent   = m.place   || "";
       capCountry.textContent = m.country || "";
     }
 
     function showCaption() {
-      // NIEUW: caption alleen tonen als thumbOverlay NIET open is
       if (thumbsVisible) return;
-      const m = meta[i] || { country: "", place: "" };
+      const m = slides[i] || { country: "", place: "" };
       if (!m.country && !m.place) return;
       caption.classList.remove('slide-left', 'slide-right');
       setCaption(i);
@@ -273,7 +269,6 @@
     }
 
     function showThumbs() {
-      // NIEUW: thumbs alleen tonen als caption NIET open is
       if (captionIsVisible()) return;
       thumbsVisible = true;
       thumbOverlay.classList.add('show');
@@ -288,9 +283,9 @@
 
     function buildThumbs() {
       thumbStrip.innerHTML = "";
-      images.forEach((src, idx) => {
+      slides.forEach((slide, idx) => {
         const t = document.createElement("img");
-        t.src = thumbs[idx]; // kleine versie
+        t.src = slide.thumb;
         t.dataset.index = idx;
         t.addEventListener("click", ev => {
           ev.stopPropagation();
@@ -324,7 +319,7 @@
       container.scrollLeft = Math.max(0, target);
     }
 
-    /* --------- Zoom state (double-tap) ---------- */
+    /* --------- Zoom state ---------- */
     let zoom = 1;
     let panX = 0, panY = 0;
     let zoomActive = false;
@@ -353,7 +348,7 @@
     }
 
     /* --------- Eerste foto ---------- */
-    img.src = images[i];
+    img.src = slides[i].img;
 
     const DURATION = 700;
     let animating = false;
@@ -363,7 +358,6 @@
       animating = true;
       stage.classList.add("anim");
 
-      // Caption mee laten schuiven met de foto
       let captionSliding = false;
       if (caption.classList.contains('show')) {
         captionSliding = true;
@@ -376,7 +370,7 @@
         }
       }
 
-      const nextSrc = images[nextIndex];
+      const nextSrc = slides[nextIndex].img;
       const preImg = new Image();
       preImg.src = nextSrc;
 
@@ -406,14 +400,14 @@
 
           if (captionSliding) {
             caption.classList.remove('slide-left', 'slide-right');
-            caption.style.transition = ''; // terug naar CSS default
+            caption.style.transition = '';
           }
 
           updateActiveThumb(i);
           if (thumbsVisible) scrollThumbsTo(i);
 
           const preloadNext = new Image();
-          preloadNext.src = images[(nextIndex + 1) % images.length];
+          preloadNext.src = slides[(nextIndex + 1) % slides.length].img;
         }, DURATION);
       };
 
@@ -428,8 +422,8 @@
       };
     }
 
-    function next() { slideTo((i + 1) % images.length, 1); }
-    function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
+    function next() { slideTo((i + 1) % slides.length, 1); }
+    function prev() { slideTo((i - 1 + slides.length) % slides.length, -1); }
 
     /* --------- Gesture handling ---------- */
     let sx = 0, sy = 0, t0 = 0;
@@ -442,7 +436,6 @@
       return e.target.closest && e.target.closest('#thumbOverlay');
     }
 
-    // Balk omhoog swipen om te sluiten
     let overlayStartY = 0, overlayT0 = 0;
     thumbOverlay.addEventListener('touchstart', e => {
       const t = e.touches[0];
@@ -459,7 +452,6 @@
       }
     }, { passive: true });
 
-    // touchstart hoofdbeeld
     stage.addEventListener("touchstart", e => {
       if (isInThumbOverlay(e)) return;
 
@@ -480,7 +472,6 @@
       }
     }, { passive: true });
 
-    // pannen tijdens zoom
     stage.addEventListener("touchmove", e => {
       if (isInThumbOverlay(e)) return;
       if (!zoomActive) return;
@@ -493,111 +484,92 @@
       updateTransform();
     }, { passive: false });
 
-   // touchend
-stage.addEventListener("touchend", e => {
-  if (isInThumbOverlay(e)) return;
+    stage.addEventListener("touchend", e => {
+      if (isInThumbOverlay(e)) return;
 
-  const t = e.changedTouches[0];
-  const now = Date.now();
+      const t = e.changedTouches[0];
+      const now = Date.now();
 
-  // Double-tap detectie (zoom)
-  const dxTap = t.clientX - lastTapX;
-  const dyTap = t.clientY - lastTapY;
-  const dtTap = now - lastTapTime;
+      const dxTap = t.clientX - lastTapX;
+      const dyTap = t.clientY - lastTapY;
+      const dtTap = now - lastTapTime;
+      const doubleTap = dtTap < 300 && Math.abs(dxTap) < 20 && Math.abs(dyTap) < 20;
 
-  const doubleTap = dtTap < 300 && Math.abs(dxTap) < 20 && Math.abs(dyTap) < 20;
+      if (doubleTap) {
+        if (!zoomActive) {
+          zoomActive = true;
+          img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
+          zoom = ZOOM_FACTOR;
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          const cx = t.clientX - w / 2;
+          const cy = t.clientY - h / 2;
+          panX = -(zoom - 1) * cx;
+          panY = -(zoom - 1) * cy;
+          updateTransform();
+          setTimeout(() => { img.style.transition = 'none'; }, ZOOM_ANIM_MS);
+        } else {
+          img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
+          zoom = 1;
+          panX = 0;
+          panY = 0;
+          updateTransform();
+          setTimeout(() => {
+            img.style.transition = 'none';
+            zoomActive = false;
+          }, ZOOM_ANIM_MS);
+        }
+        lastTapTime = 0;
+        return;
+      } else {
+        lastTapTime = now;
+        lastTapX = t.clientX;
+        lastTapY = t.clientY;
+      }
 
-  if (doubleTap) {
-    if (!zoomActive) {
-      // Zoom IN op tikpositie
-      zoomActive = true;
-      img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
-      zoom = ZOOM_FACTOR;
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const cx = t.clientX - w / 2;
-      const cy = t.clientY - h / 2;
-      panX = -(zoom - 1) * cx;
-      panY = -(zoom - 1) * cy;
-      updateTransform();
-      setTimeout(() => { img.style.transition = 'none'; }, ZOOM_ANIM_MS);
-    } else {
-      // Smooth uitzoomen
-      img.style.transition = `transform ${ZOOM_ANIM_MS}ms ease-out`;
-      zoom = 1;
-      panX = 0;
-      panY = 0;
-      updateTransform();
-      setTimeout(() => {
-        img.style.transition = 'none';
-        zoomActive = false;
-      }, ZOOM_ANIM_MS);
-    }
-    lastTapTime = 0;
-    return;
-  } else {
-    lastTapTime = now;
-    lastTapX = t.clientX;
-    lastTapY = t.clientY;
-  }
+      if (zoomActive) return;
 
-  if (zoomActive) return;
+      const dx = t.clientX - sx;
+      const dy = t.clientY - sy;
+      const dt = now - t0;
+      const isHorizontal = Math.abs(dx) > Math.abs(dy);
+      const isVertical   = !isHorizontal;
 
-  const dx = t.clientX - sx;
-  const dy = t.clientY - sy;
-  const dt = now - t0;
-  const isHorizontal = Math.abs(dx) > Math.abs(dy);
-  const isVertical   = !isHorizontal;
+      if (thumbsVisible) {
+        if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
+          hideThumbs();
+          dx < 0 ? next() : prev();
+        } else if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
+          hideThumbs();
+        }
+        return;
+      }
 
-  /* ========= ALS MENU OPEN IS ========= */
-  if (thumbsVisible) {
-    // Horizontale swipe → volgende/vorige foto + menu weg
-    if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
-      hideThumbs();
-      dx < 0 ? next() : prev();
-    }
-    // Verticale swipe → alleen menu sluiten
-    else if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
-      hideThumbs();
-    }
-    return;
-  }
+      if (captionIsVisible()) {
+        if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
+          hideCaption();
+          dx < 0 ? next() : prev();
+        } else if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
+          hideCaption();
+        }
+        return;
+      }
 
-  /* ========= ALS CAPTION OPEN IS ========= */
-  if (captionIsVisible()) {
-    // Horizontale swipe → volgende/vorige foto + caption weg
-    if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
-      hideCaption();
-      dx < 0 ? next() : prev();
-    }
-    // Verticale swipe → alleen caption sluiten
-    else if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
-      hideCaption();
-    }
-    return;
-  }
+      if (isVertical && dy > SWIPE_Y && dt < 800) {
+        showThumbs();
+        return;
+      }
 
-  /* ========= NORMALE CASE (geen menu, geen caption) ========= */
+      if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
+        dx < 0 ? next() : prev();
+        return;
+      }
 
-  // Verticaal omlaag → thumbnails tonen (overal op het scherm)
-  if (isVertical && dy > SWIPE_Y && dt < 800) {
-    showThumbs();
-    return;
-  }
+      if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
+        if (dy < 0) showCaption();
+      }
+    }, { passive: true });
 
-  // Horizontale swipe → foto wisselen
-  if (isHorizontal && Math.abs(dx) > SW && dt < 1000) {
-    dx < 0 ? next() : prev();
-    return;
-  }
-
-  // Verticaal → caption aan (alleen omhoog, want omlaag is menu)
-  if (isVertical && Math.abs(dy) > SWIPE_Y && dt < 800) {
-    if (dy < 0) showCaption();
-  }
-}, { passive: true });
-
-    // Desktop: pijltjes + 'i' + 'z'
     document.addEventListener("keydown", e => {
       if (zoomActive) {
         if (e.key.toLowerCase?.() === "z") resetZoom();
@@ -611,7 +583,6 @@ stage.addEventListener("touchend", e => {
       }
     });
 
-    /* --------- PWA & rubber-band fix ---------- */
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("./sw.js").catch(() => {});
     }
@@ -625,7 +596,6 @@ stage.addEventListener("touchend", e => {
       }
     }, { passive: false });
 
-    /* --------- Init ---------- */
     buildThumbs();
   </script>
 </body>
