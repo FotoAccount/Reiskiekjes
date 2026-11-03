@@ -10,8 +10,8 @@ const SHELL = [
   './landscape.html',
   './portret.html',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icons_icon-192.png',
+  './icons/icons_icon-512.png'
 ];
 
 // Install: cache de shell
