@@ -4,14 +4,16 @@
   <meta charset="UTF-8" />
   <title>Portret</title>
 
-  <!-- PWA -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, height=device-height" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
 
   <style>
-    :root { --topbar: 28px; } /* hoogte van de zwarte balk bovenaan */
+    :root {
+      --divider: 30px;
+      --anim-ms: 700ms;
+    }
 
     html, body {
       margin: 0;
@@ -19,30 +21,20 @@
       background: #000;
       color: #fff;
       overflow: hidden;
-      touch-action: none; /* voorkomt rubber-band scroll */
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      font-family: -apple-system, system-ui, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
     }
 
-    /* Zwarte balk bovenaan (stabiele marge) */
-    .topbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: var(--topbar);
-      background: #000;
-      z-index: 2;
-      pointer-events: none;
-    }
-
-    /* Hoofdcontainer voor de foto's */
     #stage {
       position: fixed;
-      top: var(--topbar);
-      left: 0; right: 0; bottom: 0;
+      inset: 0;
       overflow: hidden;
       background: #000;
       touch-action: none;
     }
 
-    /* Twee lagen voor de slide-animatie */
     #img, #imgNext {
       position: absolute;
       inset: 0;
@@ -51,100 +43,353 @@
       object-fit: cover;
       object-position: center;
       background: #000;
-      transition: transform 0.4s ease;
+      transition: transform var(--anim-ms) ease;
+      will-change: transform;
     }
 
     #imgNext { transform: translateX(100%); }
+
+    #stage.anim #img,
+    #stage.anim #imgNext {
+      box-shadow: 0 0 0 var(--divider) #000;
+    }
+
+    #caption {
+      position: absolute;
+      left: 5vw;
+      bottom: 3vh;
+      z-index: 5;
+      color: #fff;
+      text-shadow: 0 0 6px rgba(0,0,0,0.4);
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(0, 12px);
+      transition: opacity .35s ease, transform .35s ease;
+    }
+
+    #caption.show {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    #caption.slide-left,
+    #caption.slide-right {
+      opacity: 0;
+    }
+
+    #caption.slide-left {
+      transform: translate(-100%, 0);
+    }
+
+    #caption.slide-right {
+      transform: translate(100%, 0);
+    }
+
+    #caption .place {
+      font-size: clamp(16px, 2.8vw, 24px);
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      margin-bottom: 2px;
+    }
+
+    #caption .country {
+      font-size: clamp(12px, 2vw, 18px);
+      font-weight: 400;
+      opacity: 0.9;
+    }
+
+    #thumbOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 22vh;
+      background: rgba(0,0,0,0.69);
+      backdrop-filter: blur(6px);
+      transform: translateY(-100%);
+      transition: transform .35s ease;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      touch-action: pan-x;
+    }
+
+    #thumbOverlay.show {
+      transform: translateY(0);
+    }
+
+    #thumbStrip {
+      display: flex;
+      gap: 8px;
+      padding: 0 16px;
+      overflow-x: auto;
+      width: 100%;
+      scrollbar-width: none;
+      touch-action: pan-x;
+    }
+
+    #thumbStrip::-webkit-scrollbar {
+      display: none;
+    }
+
+    #thumbStrip img {
+      height: 60px;
+      flex-shrink: 0;
+      opacity: 0.6;
+      border-radius: 3px;
+      transition: opacity .2s ease, transform .2s ease, outline .2s ease;
+    }
+
+    #thumbStrip img.active {
+      opacity: 1;
+      transform: scale(1.03);
+      outline: 2px solid #fff;
+    }
   </style>
 </head>
 <body>
-  <!-- bewuste zwarte balk -->
-  <div class="topbar"></div>
-
-  <!-- slideshow -->
   <div id="stage">
     <img id="img" alt="Portret" />
     <img id="imgNext" alt="Volgende" />
+
+    <div id="caption" aria-live="polite">
+      <div class="place"></div>
+      <div class="country"></div>
+    </div>
+
+    <div id="thumbOverlay">
+      <div id="thumbStrip"></div>
+    </div>
   </div>
 
   <script>
-    // --- Jouw portretfoto’s ---
-    const images = [
-      "images/p1.jpg",
-      "images/p2.jpg",
-      "images/p3.jpg"
+    const slides = [
+      { img: "images/p1.jpg", thumb: "images/p1.jpg", place: "Portret 1", country: "Locatie 1" },
+      { img: "images/p2.jpg", thumb: "images/p2.jpg", place: "Portret 2", country: "Locatie 2" },
+      { img: "images/p3.jpg", thumb: "images/p3.jpg", place: "Portret 3", country: "Locatie 3" }
     ];
 
     let i = 0;
-    const stage   = document.getElementById("stage");
-    const img     = document.getElementById("img");
-    const imgNext = document.getElementById("imgNext");
+    const stage        = document.getElementById("stage");
+    const img          = document.getElementById("img");
+    const imgNext      = document.getElementById("imgNext");
+    const caption      = document.getElementById("caption");
+    const capPlace     = caption.querySelector(".place");
+    const capCountry   = caption.querySelector(".country");
+    const thumbOverlay = document.getElementById("thumbOverlay");
+    const thumbStrip   = document.getElementById("thumbStrip");
 
-    img.src = images[i];
+    let thumbsVisible = false;
 
-    const DURATION = 400; // ms
+    const imageCache = new Map();
+
+    function preloadImage(src) {
+      if (imageCache.has(src)) return imageCache.get(src);
+      const im = new Image();
+      im.src = src;
+      imageCache.set(src, im);
+      return im;
+    }
+
+    function preloadAround(index) {
+      const total = slides.length;
+      const ids = [index, (index + 1) % total, (index + 2) % total, (index - 1 + total) % total];
+      ids.forEach(idx => preloadImage(slides[idx].img));
+    }
+
+    function setCaption(idx) {
+      const m = slides[idx] || { country: "", place: "" };
+      capPlace.textContent   = m.place   || "";
+      capCountry.textContent = m.country || "";
+    }
+
+    function showCaption() {
+      if (thumbsVisible) return;
+      const m = slides[i] || { country: "", place: "" };
+      if (!m.country && !m.place) return;
+      caption.classList.remove('slide-left', 'slide-right');
+      setCaption(i);
+      caption.classList.add("show");
+    }
+
+    function hideCaption() {
+      caption.classList.remove("show", "slide-left", "slide-right");
+    }
+
+    function captionIsVisible() {
+      return caption.classList.contains("show");
+    }
+
+    function showThumbs() {
+      if (captionIsVisible()) return;
+      thumbsVisible = true;
+      thumbOverlay.classList.add('show');
+      updateActiveThumb(i);
+      scrollThumbsTo(i);
+    }
+
+    function hideThumbs() {
+      thumbsVisible = false;
+      thumbOverlay.classList.remove('show');
+    }
+
+    function buildThumbs() {
+      thumbStrip.innerHTML = "";
+      slides.forEach((slide, idx) => {
+        const t = document.createElement("img");
+        t.src = slide.thumb;
+        t.dataset.index = idx;
+        t.addEventListener("click", ev => {
+          ev.stopPropagation();
+          if (idx === i) {
+            hideThumbs();
+            return;
+          }
+          if (zoomActive) return;
+          hideCaption();
+          hideThumbs();
+          const dir = idx > i ? 1 : -1;
+          slideTo(idx, dir);
+        });
+        thumbStrip.appendChild(t);
+      });
+      updateActiveThumb(0);
+    }
+
+    function updateActiveThumb(index) {
+      const imgs = thumbStrip.querySelectorAll("img");
+      imgs.forEach(el => {
+        el.classList.toggle("active", Number(el.dataset.index) === index);
+      });
+    }
+
+    function scrollThumbsTo(index) {
+      const active = thumbStrip.querySelector(`img[data-index="${index}"]`);
+      if (!active) return;
+      const container = thumbStrip;
+      const target = active.offsetLeft - (container.clientWidth / 2) + (active.clientWidth / 2);
+      container.scrollLeft = Math.max(0, target);
+    }
+
+    let zoom = 1;
+    let panX = 0, panY = 0;
+    let zoomActive = false;
+    let panStartX = 0, panStartY = 0;
+    let basePanX = 0, basePanY = 0;
+    const ZOOM_FACTOR = 2.5;
+    const ZOOM_ANIM_MS = 260;
+
+    function updateTransform() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const maxX = (zoom - 1) * w * 0.5;
+      const maxY = (zoom - 1) * h * 0.5;
+      panX = Math.max(-maxX, Math.min(maxX, panX));
+      panY = Math.max(-maxY, Math.min(maxY, panY));
+      img.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    }
+
+    function resetZoom() {
+      zoom = 1;
+      panX = 0;
+      panY = 0;
+      zoomActive = false;
+      img.style.transition = 'none';
+      img.style.transform = 'translate(0,0) scale(1)';
+    }
+
+    img.src = slides[i].img;
+    preloadAround(i);
+
+    const DURATION = 700;
     let animating = false;
 
     function slideTo(nextIndex, direction) {
       if (animating) return;
       animating = true;
+      stage.classList.add("anim");
 
-      imgNext.src = images[nextIndex];
+      let captionSliding = false;
+      if (caption.classList.contains('show')) {
+        captionSliding = true;
+        caption.classList.remove('show', 'slide-left', 'slide-right');
+        caption.style.transition = `transform ${DURATION}ms ease, opacity ${DURATION}ms ease`;
+        if (direction === 1) {
+          caption.classList.add('slide-left');
+        } else {
+          caption.classList.add('slide-right');
+        }
+      }
+
+      const nextSrc = slides[nextIndex].img;
+      const preImg = preloadImage(nextSrc);
+
+      if (preImg.complete) {
+        runTransition(nextIndex, direction, nextSrc, captionSliding);
+      } else {
+        preImg.onload = () => runTransition(nextIndex, direction, nextSrc, captionSliding);
+        preImg.onerror = () => {
+          console.warn("Kon afbeelding niet laden:", nextSrc);
+          animating = false;
+          stage.classList.remove("anim");
+          if (captionSliding) {
+            caption.classList.remove('slide-left', 'slide-right');
+            caption.style.transition = '';
+          }
+        };
+      }
+    }
+
+    function runTransition(nextIndex, direction, nextSrc, captionSliding) {
+      imgNext.src = nextSrc;
       imgNext.style.transition = "none";
       img.style.transition = "none";
       imgNext.style.transform = `translateX(${direction * 100}%)`;
 
       requestAnimationFrame(() => {
         imgNext.style.transition = `transform ${DURATION}ms ease`;
-        img.style.transition     = `transform ${DURATION}ms ease`;
-        img.style.transform      = `translateX(${-direction * 100}%)`;
-        imgNext.style.transform  = "translateX(0)";
+        img.style.transition = `transform ${DURATION}ms ease`;
+        img.style.transform = `translateX(${-direction * 100}%)`;
+        imgNext.style.transform = "translateX(0)";
       });
 
       setTimeout(() => {
-        img.src = images[nextIndex];
+        img.src = nextSrc;
         img.style.transition = "none";
-        img.style.transform  = "translateX(0)";
+        img.style.transform = "translateX(0)";
         imgNext.style.transition = "none";
-        imgNext.style.transform  = "translateX(100%)";
+        imgNext.style.transform = "translateX(100%)";
         i = nextIndex;
         animating = false;
+        stage.classList.remove("anim");
+        resetZoom();
+
+        if (captionSliding) {
+          caption.classList.remove('slide-left', 'slide-right');
+          caption.style.transition = '';
+        }
+
+        updateActiveThumb(i);
+        if (thumbsVisible) scrollThumbsTo(i);
+
+        preloadAround(nextIndex);
       }, DURATION);
     }
 
-    function next() { slideTo((i + 1) % images.length, 1); }
-    function prev() { slideTo((i - 1 + images.length) % images.length, -1); }
+    function next() { slideTo((i + 1) % slides.length, 1); }
+    function prev() { slideTo((i - 1 + slides.length) % slides.length, -1); }
 
-    // Swipe-detectie (tap = volgende)
-    let sx=0, sy=0, t0=0; const EDGE=24, SW=40, TAP=10, TAPMS=600;
-    stage.addEventListener('touchstart', e=>{
-      const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; t0=Date.now();
-      if (sx < EDGE || sx > window.innerWidth - EDGE) { sx = sy = 0; } // negeer edge-swipe
-    }, {passive:true});
-    stage.addEventListener('touchend', e=>{
-      if (sx===0 && sy===0) return;
-      const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy, dt=Date.now()-t0;
-      if (Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>SW && dt<1000) { dx<0 ? next() : prev(); }
-      else if (Math.abs(dx)<TAP && Math.abs(dy)<TAP && dt<TAPMS) next();
-    }, {passive:true});
+    let sx = 0, sy = 0, t0 = 0;
+    let startAtTop = false;
+    let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
 
-    // Muis/keyboard (voor desktop)
-    stage.addEventListener('click', next);
-    document.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft')  prev();
-    });
+    const EDGE = 24, SW = 40, SWIPE_Y = 40;
 
-    // Foutmelding bij verkeerd pad
-    img.addEventListener('error', () => alert('Kon niet laden: ' + images[i] + ' — check pad/naam.'));
-
-    // Service worker registreren voor PWA
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    function isInThumbOverlay(e) {
+      return e.target.closest && e.target.closest('#thumbOverlay');
     }
 
-    // iOS rubber-band scroll blokkeren
-    document.addEventListener('touchmove', e => e.preventDefault(), {passive: false});
-  </script>
-</body>
-</html>
+    let overlayStartY = 0, overlayT0 = 0;
+    thumbOverlay.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      overlay
